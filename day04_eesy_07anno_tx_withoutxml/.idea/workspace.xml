@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="1da2e1b0-c7fc-4169-a3da-b23316a69e16" name="Default Changelist" comment="" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
+  <component name="MavenImportPreferences">
+    <option name="generalSettings">
+      <MavenGeneralSettings>
+        <option name="localRepository" value="D:\Study\mawen\localRepository" />
+        <option name="mavenHome" value="$PROJECT_DIR$/../../mawen/apache-maven-3.6.0" />
+        <option name="userSettingsFile" value="D:\Study\mawen\apache-maven-3.6.0\conf\settings.xml" />
+      </MavenGeneralSettings>
+    </option>
+    <option name="importingSettings">
+      <MavenImportingSettings>
+        <option name="importAutomatically" value="true" />
+      </MavenImportingSettings>
+    </option>
+  </component>
+  <component name="ProjectId" id="1aqsrhcgUPTxGP1u48gK1CngZSB" />
+  <component name="ProjectViewState">
+    <option name="showExcludedFiles" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="aspect.path.notification.shown" value="true" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/src" />
+    <property name="node.js.detected.package.eslint" value="true" />
+    <property name="node.js.detected.package.tslint" value="true" />
+    <property name="node.js.path.for.package.eslint" value="project" />
+    <property name="node.js.path.for.package.tslint" value="project" />
+    <property name="node.js.selected.package.eslint" value="(autodetect)" />
+    <property name="node.js.selected.package.tslint" value="(autodetect)" />
+    <property name="settings.editor.selected.configurable" value="preferences.sourceCode.Java" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="D:\Study\sunchengyu\day04_eesy_07anno_tx_withoutxml\src" />
+    </key>
+  </component>
+  <component name="RunManager">
+    <configuration name="AccountServiceTest.testTransfer" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="day04_eesy_07anno_tx_withoutxml" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.itheima.test.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.itheima.test" />
+      <option name="MAIN_CLASS_NAME" value="com.itheima.test.AccountServiceTest" />
+      <option name="METHOD_NAME" value="testTransfer" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="JUnit.AccountServiceTest.testTransfer" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="1da2e1b0-c7fc-4169-a3da-b23316a69e16" name="Default Changelist" comment="" />
+      <created>1587474658937</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1587474658937</updated>
+      <workItem from="1587474662885" duration="5314000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="1" />
+  </component>
+  <component name="WindowStateProjectService">
+    <state width="1649" height="275" key="GridCell.Tab.0.bottom" timestamp="1587480010033">
+      <screen x="0" y="0" width="1707" height="1027" />
+    </state>
+    <state width="1649" height="275" key="GridCell.Tab.0.bottom/0.0.1707.1027@0.0.1707.1027" timestamp="1587480010033" />
+    <state width="1649" height="275" key="GridCell.Tab.0.center" timestamp="1587480010033">
+      <screen x="0" y="0" width="1707" height="1027" />
+    </state>
+    <state width="1649" height="275" key="GridCell.Tab.0.center/0.0.1707.1027@0.0.1707.1027" timestamp="1587480010033" />
+    <state width="1649" height="275" key="GridCell.Tab.0.left" timestamp="1587480010033">
+      <screen x="0" y="0" width="1707" height="1027" />
+    </state>
+    <state width="1649" height="275" key="GridCell.Tab.0.left/0.0.1707.1027@0.0.1707.1027" timestamp="1587480010033" />
+    <state width="1649" height="275" key="GridCell.Tab.0.right" timestamp="1587480010033">
+      <screen x="0" y="0" width="1707" height="1027" />
+    </state>
+    <state width="1649" height="275" key="GridCell.Tab.0.right/0.0.1707.1027@0.0.1707.1027" timestamp="1587480010033" />
+    <state x="424" y="169" key="SettingsEditor" timestamp="1587475284643">
+      <screen x="0" y="0" width="1707" height="1027" />
+    </state>
+    <state x="424" y="169" key="SettingsEditor/0.0.1707.1027@0.0.1707.1027" timestamp="1587475284643" />
+  </component>
+</project>
