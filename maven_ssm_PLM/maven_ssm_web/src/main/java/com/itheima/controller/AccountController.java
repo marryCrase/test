@@ -45,6 +45,7 @@ public class AccountController {
      * @return
      */
     @RequestMapping("/saveAccount")
+
     public void saveAccount(Account account, HttpServletRequest request, HttpServletResponse response) throws IOException {
         System.out.println("表现层保存账户信息。。。");
         //调用service

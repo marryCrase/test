@@ -1,32 +1,27 @@
 package com.itheima.service;
 
-import com.itheima.domain.User;
-import org.apache.ibatis.annotations.Select;
-import org.springframework.stereotype.Repository;
-import org.springframework.stereotype.Service;
-
-import java.util.List;
+import org.springframework.security.core.userdetails.UserDetailsService;
 
 /**
  * 用户dao
  */
-public interface IUserService {
+public interface IUserService extends UserDetailsService {
 
     /**
      * 查询所有用户
      * @return
      */
-    List<User> findAllUser(int pageNum, int pageSize);
+//    List<UserInfo> findAllUser(int pageNum, int pageSize);
 
     /**
      * 根据ID查询用户
      */
-    User findUserById(int userId);
+//    UserInfo findUserById(int userId);
 
     /**
      * 根据条件查询用户
      * @param user
      * @return
      */
-    User findUser(User user);
+//    UserInfo findUser(UserInfo user);
 }

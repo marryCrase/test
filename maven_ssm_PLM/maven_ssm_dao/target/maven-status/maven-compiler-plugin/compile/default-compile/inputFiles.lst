@@ -1,2 +1,9 @@
-D:\sunchengyu\maven_ssm\maven_ssm_dao\src\main\java\com\itheima\dao\IAccountDao.java
-D:\sunchengyu\maven_ssm\maven_ssm_dao\src\main\java\com\itheima\domain\Account.java
+D:\sunchengyu\maven_ssm_PLM\maven_ssm_dao\src\main\java\com\itheima\dao\IAccountDao.java
+D:\sunchengyu\maven_ssm_PLM\maven_ssm_dao\src\main\java\com\itheima\domain\UserInfo.java
+D:\sunchengyu\maven_ssm_PLM\maven_ssm_dao\src\main\java\com\itheima\domain\Role.java
+D:\sunchengyu\maven_ssm_PLM\maven_ssm_dao\src\main\java\com\itheima\domain\Article.java
+D:\sunchengyu\maven_ssm_PLM\maven_ssm_dao\src\main\java\com\itheima\domain\Permission.java
+D:\sunchengyu\maven_ssm_PLM\maven_ssm_dao\src\main\java\com\itheima\dao\IUserDao.java
+D:\sunchengyu\maven_ssm_PLM\maven_ssm_dao\src\main\java\com\itheima\dao\IRoleDao.java
+D:\sunchengyu\maven_ssm_PLM\maven_ssm_dao\src\main\java\com\itheima\domain\Account.java
+D:\sunchengyu\maven_ssm_PLM\maven_ssm_dao\src\main\java\com\itheima\dao\IArticleDao.java

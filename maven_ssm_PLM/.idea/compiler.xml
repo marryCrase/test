@@ -6,18 +6,18 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="maven_ssm_dao" />
-        <module name="maven_ssm_service" />
         <module name="maven_ssm_utils" />
+        <module name="maven_ssm_service" />
         <module name="maven_ssm_web" />
+        <module name="maven_ssm_dao" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel>
-      <module name="maven_ssm_dao" target="1.5" />
-      <module name="maven_ssm_PLM" target="1.5" />
-      <module name="maven_ssm_service" target="1.5" />
-      <module name="maven_ssm_utils" target="1.5" />
-      <module name="maven_ssm_web" target="1.5" />
+    <bytecodeTargetLevel target="1.8">
+      <module name="maven_ssm_dao" target="1.8" />
+      <module name="maven_ssm_PLM" target="1.8" />
+      <module name="maven_ssm_service" target="1.6" />
+      <module name="maven_ssm_utils" target="1.8" />
+      <module name="maven_ssm_web" target="1.8" />
     </bytecodeTargetLevel>
   </component>
 </project>

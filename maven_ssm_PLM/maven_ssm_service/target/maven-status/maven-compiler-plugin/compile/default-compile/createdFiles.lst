@@ -1,2 +1,6 @@
+com\itheima\service\impl\ArticleServiceImpl.class
 com\itheima\service\IAccountService.class
+com\itheima\service\IUserService.class
+com\itheima\service\IArticleService.class
 com\itheima\service\impl\AccountServiceImpl.class
+com\itheima\service\impl\UserServiceImpl.class

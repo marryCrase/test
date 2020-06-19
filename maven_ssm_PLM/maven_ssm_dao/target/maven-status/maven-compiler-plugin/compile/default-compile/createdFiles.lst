@@ -1,2 +1,9 @@
+com\itheima\domain\Permission.class
+com\itheima\domain\UserInfo.class
 com\itheima\dao\IAccountDao.class
+com\itheima\domain\Article.class
+com\itheima\dao\IRoleDao.class
+com\itheima\dao\IUserDao.class
+com\itheima\domain\Role.class
 com\itheima\domain\Account.class
+com\itheima\dao\IArticleDao.class

@@ -19,16 +19,38 @@
     <!--组件扫描-->
     <context:component-scan base-package="com.itheima.controller"/>
 
-    <!--处理器映射器，处理器适配器-->
-    <mvc:annotation-driven/>
-
     <!--视图解析器-->
     <bean id="internalResourceViewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver">
         <property name="prefix" value="/WEB-INF/pages/"/>
         <property name="suffix" value=".jsp"/>
     </bean>
 
+    <!-- 设置静态资源不过滤 -->
+    <mvc:resources location="/css/" mapping="/css/**" />
+    <mvc:resources location="/images/" mapping="/images/**" />
+    <mvc:resources location="/js/" mapping="/js/**" />
+    <mvc:resources location="/fonts/" mapping="/fonts/**" />
+    <mvc:resources location="/plugins/" mapping="/plugins/**" />
+
+    <!--配置自定义类型转换器-->
+    <bean id="conversionService" class="org.springframework.context.support.ConversionServiceFactoryBean">
+        <property name="converters">
+            <set>
+                <bean class="com.itheima.utils.StringToDateConverter"/>
+            </set>
+        </property>
+    </bean>
+
     <!--释放静态资源-->
     <mvc:default-servlet-handler/>
 
+    <!--处理器映射器，处理器适配器-->
+    <mvc:annotation-driven conversion-service="conversionService"/>
+
+    <!--
+        支持AOP的注解支持，AOP底层使用代理技术
+        JDK动态代理，要求必须有接口
+        cglib代理，生成子类对象，proxy-target-class="true" 默认使用cglib的方式
+    -->
+    <aop:aspectj-autoproxy proxy-target-class="true"/>
 </beans>

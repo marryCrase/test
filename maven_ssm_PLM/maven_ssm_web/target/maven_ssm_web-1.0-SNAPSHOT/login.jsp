@@ -5,13 +5,13 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
     <title>登录页面 - 后台管理系统模板</title>
-    <link rel="icon" href="favicon.ico" type="image/ico">
+    <link rel="icon" href="${pageContext.request.contextPath}/favicon.ico" type="image/ico">
     <meta name="keywords" content="后台管理系统">
     <meta name="description" content="LightYear是一个基于Bootstrap v3.3.7的后台管理系统的HTML模板。">
     <meta name="author" content="yinqi">
-    <link href="css/bootstrap.min.css" rel="stylesheet">
-    <link href="css/materialdesignicons.min.css" rel="stylesheet">
-    <link href="css/style.min.css" rel="stylesheet">
+    <link href="${pageContext.request.contextPath}/css/bootstrap.min.css" rel="stylesheet">
+    <link href="${pageContext.request.contextPath}/css/style.min.css" rel="stylesheet">
+    <link href="${pageContext.request.contextPath}/css/materialdesignicons.min.css" rel="stylesheet">
     <style>
         .lyear-wrapper {
             position: relative;
@@ -56,9 +56,9 @@
     <div class="lyear-login">
         <div class="login-center">
             <div class="login-header text-center">
-                <a href="index.html"> <img alt="light year admin" src="images/logo-sidebar.png"> </a>
+                <a href="${pageContext.request.contextPath}/login.do"> <img alt="light year admin" src="${pageContext.request.contextPath}/images/logo-sidebar.png"> </a>
             </div>
-            <form action="${pageContext.request.contextPath}/user/findUser" method="post">
+            <form action="${pageContext.request.contextPath}/login.do" method="post">
                 <div class="form-group has-feedback feedback-left">
                     <input type="text" placeholder="请输入您的用户名" class="form-control" name="username" id="username" />
                     <span class="mdi mdi-account form-control-feedback" aria-hidden="true"></span>
@@ -77,15 +77,15 @@
                     </div>
                 </div>--%>
                 <div class="form-group">
-                    <button class="btn btn-block btn-primary" type="button">立即登录</button>
+                    <input class="btn btn-block btn-primary" type="submit" value="立即登录"></input>
                 </div>
             </form>
             <hr>
         </div>
     </div>
 </div>
-<script type="text/javascript" src="js/jquery.min.js"></script>
-<script type="text/javascript" src="js/bootstrap.min.js"></script>
+<script type="text/javascript" src="${pageContext.request.contextPath}/js/jquery.min.js"></script>
+<script type="text/javascript" src="${pageContext.request.contextPath}/js/bootstrap.min.js"></script>
 <script type="text/javascript">;</script>
 </body>
 </html>
