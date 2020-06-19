@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="Encoding" native2AsciiForPropertiesFiles="true" defaultCharsetForPropertiesFiles="UTF-8">
+    <file url="file://$PROJECT_DIR$" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/lib/QRCode.jar" charset="GBK" />
+    <file url="file://$PROJECT_DIR$/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/java/cn/itcast/domain/Audio.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/java/cn/itcast/domain/Photo.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/java/cn/itcast/domain/Route.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/java/cn/itcast/domain/Text.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/java/cn/itcast/domain/Url.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/java/cn/itcast/domain/Video.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/java/cn/itcast/test/AddressUtils.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/java/cn/itcast/test/Test03.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/java/cn/itcast/test/test4.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/java/cn/itcast/util/FtpUtils.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/java/cn/itcast/util/IPhotoList.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/java/cn/itcast/util/QRCodeUtil.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/java/cn/itcast/util/StringUtil.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/java/cn/itcast/view/ViewUtil.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/resources" charset="UTF-8" />
+    <file url="PROJECT" charset="UTF-8" />
+  </component>
+</project>
