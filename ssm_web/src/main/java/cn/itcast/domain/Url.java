@@ -9,7 +9,7 @@ public class Url {
     private String iphotoUrl;  //主图的坐标
     private int o_id;  //父图的ID
     private String ihtml;//主网页名称
-    private String annotation;
+    private String annotation;//网页注释
 
     public int getId() {
         return id;

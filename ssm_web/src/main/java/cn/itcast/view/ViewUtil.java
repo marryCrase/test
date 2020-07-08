@@ -1,17 +1,12 @@
 package cn.itcast.view;
 
+import cn.itcast.dao.*;
 import cn.itcast.domain.*;
-import cn.itcast.service.*;
-import cn.itcast.service.impl.*;
 import cn.itcast.test.readProperties;
+import cn.itcast.util.DbUtil;
 import cn.itcast.util.FtpUtils;
 import cn.itcast.util.QRCodeUtil;
-import config.SpringConfiguration;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.context.annotation.PropertySource;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -23,6 +18,8 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 import java.net.URL;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
@@ -38,12 +35,10 @@ import static javax.swing.JOptionPane.showMessageDialog;
  * Time:16:29
  */
 //启用配置文件
-@PropertySource("classpath*:/data.properties")
 public class ViewUtil extends JFrame implements ActionListener, MouseListener, MouseMotionListener {
 
-//    private String serverIP = "192.168.1.3";
+    //    private String serverIP = "192.168.1.3";
 //    ApplicationContext aca = new ClassPathXmlApplicationContext("applicationContext.xml");
-    @Value("${serverIP}")
     private String serverIP;
 
     private String fileName = "view.jpg";
@@ -82,7 +77,8 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
     private JButton jb11 = new JButton();//最小化
 
     private JLabel labelIP = new JLabel("服务器IP：" + serverIP, JLabel.CENTER);//IP地址
-    private JLabel labelUrl = new JLabel("192.168.1.3", JLabel.CENTER);//IP地址
+    private JLabel labelUrl = new JLabel("", JLabel.CENTER);//IP地址
+    private JLabel labelPx = new JLabel("",JLabel.CENTER);//提示使用图片大小
 
     /**
      * scrollpane
@@ -112,7 +108,7 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
     private List<JLabel> jLabels = new ArrayList<JLabel>();//文字label框集合
 
     private List<String> list = new ArrayList();//鼠标点下并拖动后的所有坐标
-    private List dataList = new ArrayList();//数据类型集合
+    /*private List dataList = new ArrayList();//数据类型集合
     private List uriList = new ArrayList<>();//链接类型集合
     //文字
     private List<String> listSpan = new ArrayList<>();//文字集合
@@ -126,7 +122,7 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
     private List videoListUri = new ArrayList();//视频坐标集合
 
     private List textUrl = new ArrayList();//文本链接集合
-    private List photoUrl = new ArrayList();//图片链接集合
+    private List photoUrl = new ArrayList();//图片链接集合*/
 
     private ImageIcon images;//输入图片
     private String path = null;//输入图片路径
@@ -176,7 +172,19 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
     private JPanel jPanel = new JPanel();
 
     //数据处理
-    private UrlServiceImpl urlService;
+    private Connection conn = null;
+    private DbUtil dbUtil = new DbUtil();
+    private UrlDao urlDao = new UrlDao();
+    private DataDao dataDao = new DataDao();
+    private List<Data> listData = new ArrayList<>();//数据集合
+    private List<Data> listType = new ArrayList<>();//类型集合
+    private List<Data> listUrl = new ArrayList<>();//链接集合
+    private List<Data> listCoord = new ArrayList<>();//坐标集合
+    private List<Data> listText = new ArrayList<>();//文字集合
+    private List<Data> listPhoto = new ArrayList<>();//图片集合
+    private List<Data> listAudio = new ArrayList<>();//音频集合
+    private List<Data> listVideo = new ArrayList<>();//视频集合
+    private List<Data> listPath = new ArrayList<>();//路径集合
 
     /**
      * main方法
@@ -197,7 +205,7 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
         String filepath = readProperties.class.getClassLoader()
                 .getResource("data.properties").getPath();
         //写入文件内容
-        file(filepath,"serverIP="+ip);
+        file(filepath, "serverIP=" + ip);
         serverIP = ip;
         labelIP.setText("服务器IP：" + serverIP);
         //获取屏幕大小
@@ -286,6 +294,7 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
         myPanel.setOpaque(false);
         labelIP.setOpaque(false);
         labelUrl.setOpaque(false);
+        labelPx.setOpaque(false);
         panelBottom.setOpaque(false);
         rightTip.setOpaque(false);
 
@@ -349,12 +358,14 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
         panelRight.add(panelRightBom, BorderLayout.SOUTH);
 
         panelBottom.add(labelUrl);
+        panelBottom.add(labelPx);
+
         panelRightList.add(rightTip);
         panelRightBom.add(labelIP);
 
         rightTip.setLineWrap(true);//设置文本域自动换行
         rightTip.setEnabled(false);
-        rightTip.setFont(new Font("黑体",Font.BOLD,18));
+        rightTip.setFont(new Font("黑体", Font.BOLD, 18));
         rightTip.setAlignmentX(5);
         //设置控件位置大小
         jFrame.setSize(scrSize.width - scrInsets.left - scrInsets.right, scrSize.height - scrInsets.top - scrInsets.bottom);
@@ -367,9 +378,12 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
         panelRightList.setPreferredSize(new Dimension(jFrame.getWidth() / 7 + 23, panelRight.getHeight() - panelRight.getHeight() / 10));
         panelRightBom.setPreferredSize(new Dimension(jFrame.getWidth() / 7 + 23, panelRight.getHeight() / 10));
 
-        rightTip.setBounds(15,panelRight.getHeight() - panelRight.getHeight() / 10*3 - 50+jLabel.getHeight(),jFrame.getWidth() / 7 + 10,panelRight.getHeight()/5);
+        rightTip.setBounds(15, panelRight.getHeight() - panelRight.getHeight() / 10 * 3 - 50 + jLabel.getHeight(), jFrame.getWidth() / 7 + 10, panelRight.getHeight() / 5);
         myPanel.setBounds(9, 8, panelCenter.getWidth() - 18, panelCenter.getHeight() - 16);
         labelIP.setBorder(BorderFactory.createEmptyBorder(panelRight.getHeight() / 20, 10, 10, 10));
+
+        labelPx.setText("请使用小于" + myPanel.getWidth() + "×" + myPanel.getHeight() + "的图片");
+        labelPx.setForeground(Color.gray);
 
         /*Border bor = BorderFactory.createLineBorder(Color.ORANGE,1);
         rightTip.setBorder(bor);*/
@@ -407,7 +421,6 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
         jb10.setBounds(jFrame.getWidth() - background.getIconWidth() * 2 - 10, 0, background.getIconWidth(), background.getIconHeight());
         jb11.setBounds(jFrame.getWidth() - background.getIconWidth() * 3 - 20, 0, background.getIconWidth(), background.getIconHeight());
 
-
         /**
          * JScrollpane
          */
@@ -419,8 +432,7 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
         jLabel.setBounds(0, 0, panelRight.getWidth(), 40);
         reJsp();
 //        ac = new ClassPathXmlApplicationContext("applicationContext.xml");
-         ac = new AnnotationConfigApplicationContext(SpringConfiguration.class);
-        urlService = (UrlServiceImpl) ac.getBean("urlService");
+
         table.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseExited(MouseEvent e) {
@@ -446,10 +458,22 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
                 Object tip = table.getValueAt(row, col);
 
                 if (tip != null) {
-                    List<Url> urls = urlService.findUrlByName(tip.toString());
-                    table.setToolTipText(urls.get(0).getAnnotation());
-                    rightTip.setText(urls.get(0).getAnnotation());
+                    try {
+                        conn = dbUtil.getCon();
+                        List<Url> urls = urlDao.findUrlByName(conn, tip.toString());
+                        table.setToolTipText(urls.get(0).getAnnotation());
+                        rightTip.setText(urls.get(0).getAnnotation());
+                    } catch (Exception ee) {
+                        ee.printStackTrace();
+                    } finally {
+                        try {
+                            conn.close();
+                        } catch (SQLException ee) {
+                            ee.printStackTrace();
+                        }
+                    }
                 }
+
             }
         });
 
@@ -469,7 +493,7 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
         Jdlog1Field = new JTextField(20);
         JScrollPane scroll = new JScrollPane(Jdlog1Area);
         scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);//垂直滚动
-        Jdlog1Field.setText("http://");
+        Jdlog1Field.setText("");
 
         Jdlog1Btn1.setActionCommand("textBtn1");
         Jdlog1Btn2.setActionCommand("textBtn2");
@@ -599,27 +623,54 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
                                 Jdlog1.setVisible(true);
                                 break;
                             case 2:
+                                Data data = new Data();
                                 open();
-                                dataList.add("@PHOTO:");
-                                photoListUri.add(banner);//图片坐标
-                                photoList.add(fdopen.getDirectory().replace("\\", "/") + fdopen.getFile());//图片路径
-                                String inputValue2 = showInputDialog("请输入跳转地址", "http://");
-                                uriList.add(inputValue2);//所有链接
-                                photoUrl.add(inputValue2);//图片链接
+//                                dataList.add("@PHOTO:");
+//                                photoListUri.add(banner);//图片坐标
+//                                photoList.add(fdopen.getDirectory().replace("\\", "/") + fdopen.getFile());//图片路径
+                                String inputValue2 = showInputDialog("请输入跳转地址", "");
+                                if (inputValue2.equals("") || inputValue2 == null) {
+//                                    uriList.add("");//所有链接
+//                                    photoUrl.add("");//图片链接
+                                    data.setUrl("");
+                                } else {
+//                                    uriList.add("http://"+inputValue2+".html");//所有链接
+//                                    photoUrl.add("http://"+inputValue2+".html");//图片链接
+                                    data.setUrl("http://" + inputValue2 + ".html");
+                                }
+                                data.setType("@PHOTO:");
+                                data.setCoord(banner);
+                                data.setText("");
+                                data.setPath(fdopen.getDirectory().replace("\\", "/") + fdopen.getFile());
+                                listData.add(data);
                                 break;
                             case 3:
-                                uriList.add(null);
+//                                uriList.add(null);
                                 open();
-                                dataList.add("@AUDIO:");
-                                audioListUri.add(banner);
-                                audioList.add(fdopen.getDirectory().replace("\\", "/") + fdopen.getFile());//音频路径集合
+//                                dataList.add("@AUDIO:");
+//                                audioListUri.add(banner);
+//                                audioList.add(fdopen.getDirectory().replace("\\", "/") + fdopen.getFile());//音频路径集合
+                                Data data2 = new Data();
+                                data2.setType("@AUDIO:");
+                                data2.setUrl("");
+                                data2.setCoord(banner);
+                                data2.setText("");
+                                data2.setPath(fdopen.getDirectory().replace("\\", "/") + fdopen.getFile());
+                                listData.add(data2);
                                 break;
                             case 4:
-                                uriList.add(null);
+//                                uriList.add(null);
                                 open();
-                                dataList.add("@VIDEO:");
-                                videoListUri.add(banner);
-                                videoList.add(fdopen.getDirectory().replace("\\", "/") + fdopen.getFile());//视频路径集合
+//                                dataList.add("@VIDEO:");
+//                                videoListUri.add(banner);
+//                                videoList.add(fdopen.getDirectory().replace("\\", "/") + fdopen.getFile());//视频路径集合
+                                Data data3 = new Data();
+                                data3.setType("@VIDEO:");
+                                data3.setUrl("");
+                                data3.setText("");
+                                data3.setCoord(banner);
+                                data3.setPath(fdopen.getDirectory().replace("\\", "/") + fdopen.getFile());
+                                listData.add(data3);
                                 break;
                         }
                         //展示图片
@@ -641,14 +692,13 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
             public void mouseDragged(MouseEvent e) {
                 super.mouseDragged(e);
                 myPanel.rePaint(x, y, e.getX(), e.getY(), list);
-                System.out.println("移动最后坐标：" + x + "," + y + "," + e.getX() + "," + e.getY());
             }
 
             @Override
             public void mouseMoved(MouseEvent e) {
                 super.mouseMoved(e);
 
-                if (list.size() > 0) {
+                /*if (list.size() > 0) {
                     for (int i = 0; i < list.size(); i++) {
                         String s1 = String.valueOf(list.get(i));
 
@@ -658,7 +708,9 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
                         int yy = Integer.parseInt(s1.substring(s1.lastIndexOf(",") + 1, s1.length()));
 
                         if (e.getX() >= x && e.getX() <= xx && e.getY() >= y && e.getY() <= yy) {
-                            labelUrl.setText("链接:" + uriList.get(i));
+                            if (uriList.size()>i){
+                                labelUrl.setText("链接:" + uriList.get(i));
+                            }
                             break;
                         } else {
                             labelUrl.setText("");
@@ -666,6 +718,28 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
                     }
                 } else {
                     labelUrl.setText("");
+                }*/
+                if (listData.size() > 0) {
+                    for (Data data : listData) {
+                        String s1 = String.valueOf(data.getCoord());
+                        int x = Integer.parseInt(s1.substring(0, s1.indexOf(",")));
+                        int y = Integer.parseInt(s1.substring(s1.indexOf(",") + 1, s1.indexOf(":")));
+                        int xx = Integer.parseInt(s1.substring(s1.indexOf(":") + 1, s1.lastIndexOf(",")));
+                        int yy = Integer.parseInt(s1.substring(s1.lastIndexOf(",") + 1, s1.length()));
+
+                        if (e.getX() >= x && e.getX() <= xx && e.getY() >= y && e.getY() <= yy) {
+                            if (data.getType().equals("@TEXT:") || data.getType().equals("@PHOTO:"))
+                                labelUrl.setText("链接:" + data.getUrl());
+                                labelPx.setVisible(false);
+                            break;
+                        } else {
+                            labelUrl.setText("");
+                            labelPx.setVisible(true);
+                        }
+                    }
+                } else {
+                    labelUrl.setText("");
+                    labelPx.setVisible(true);
                 }
             }
         });
@@ -718,7 +792,7 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
                 urlName = null;
                 path = null;
                 list.clear();
-                uriList.clear();
+                /*uriList.clear();
                 dataList.clear();
                 textListUri.clear();
                 listSpan.clear();
@@ -727,7 +801,16 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
                 audioListUri.clear();
                 audioList.clear();
                 videoListUri.clear();
-                videoList.clear();
+                videoList.clear();*/
+                listData.clear();
+                listText.clear();
+                listPhoto.clear();
+                listAudio.clear();
+                listVideo.clear();
+                listCoord.clear();
+                listType.clear();
+                listUrl.clear();
+                listPath.clear();
                 x = 0;
                 y = 0;
                 x1 = 0;
@@ -760,16 +843,26 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
                 StringBuffer classAudios = new StringBuffer();//音频audio的CSS样式
                 StringBuffer audiosJS = new StringBuffer();//音频audio的JS样式
                 //判断坐标集合是否为空
-                if (list.size() > 0) {
-
+                if (listData.size() > 0) {
                     //"\t\t\t<area shape=\"rect\" coords=\""+xy+x1+","+y1+"\" href=\""+uriList.get(uriList.size()-1)+"\" />\n"
-                    for (int i = 0; i < listSpan.size(); i++) {
+                    for (Data data : listData){
+                        if (data.getType().equals("@TEXT:")){
+                            listText.add(data);
+                        }else if (data.getType().equals("@PHOTO:")){
+                            listPhoto.add(data);
+                        }else if (data.getType().equals("@AUDIO:")){
+                            listAudio.add(data);
+                        }else if (data.getType().equals("@VIDEO:")){
+                            listVideo.add(data);
+                        }
+                    }
+                    for (int i = 0; i < listText.size(); i++) {
                         //"+list.get(i).replace(":",",")+"
-                        String s = "\t\t\t<area id=\"11" + i + "\" shape=\"rect\" coords=\"0,0,200,200\" href=\"" + uriList.get(i) + "\" />\n";
+                        String s = "\t\t\t<area id=\"11" + i + "\" shape=\"rect\" coords=\"0,0,200,200\" href=\"" + listText.get(i).getUrl() + "\" />\n";
                         sb.append(s);
 
                         //循环集合数据获取坐标后赋值给js代码
-                        String zuobiao = list.get(i);
+                        String zuobiao = listText.get(i).getCoord();
                         int x = Integer.parseInt(zuobiao.substring(0, zuobiao.indexOf(",")));
                         int y = Integer.parseInt(zuobiao.substring(zuobiao.indexOf(",") + 1, zuobiao.indexOf(":")));
                         int xx = Integer.parseInt(zuobiao.substring(zuobiao.indexOf(":") + 1, zuobiao.lastIndexOf(",")));
@@ -788,13 +881,15 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
                                 "\t           document.getElementById('span" + i + "').style.width=xx" + i + "-x" + i + "+\"px\";\n" +
                                 "\t           document.getElementById('span" + i + "').style.height=yy" + i + "-y" + i + "+\"px\";\n" +
                                 "\t           document.getElementById('11" + i + "').setAttribute(\"coords\",'\"'+x" + i + "+','+y" + i + "+','+xx" + i + "+','+yy" + i + "+'\"');\n" +
-                                "\t           document.getElementById('span" + i + "').style.overflow=\"hidden\";\n";
+                                "\t           document.getElementById('span" + i + "').style.overflow=\"hidden\";\n" +
+                                "document.getElementById(\"span"+i+"\").style.lineHeight=document.getElementById(\"span"+i+"\").offsetHeight+'px';\n";
                         js.append(jspinjie);
 
                         String sClassSpan = "#span" + i + "{\n" +
                                 "\t\t\t\tmargin: auto;\n" +
                                 "\t\t\t\tposition: absolute;\n" +
                                 "\t\t\t\ttext-align: center;\n" +
+                                "\t\t\t\tline-height: 100px;\n" +
                                 "\t\t\t\ttop:auto;\n" +
                                 "\t\t\t\tleft: auto;\n" +
                                 "\t\t\t\twidth: auto;\n" +
@@ -802,7 +897,7 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
                                 "\t\t\t}\n";
                         classSpan.append(sClassSpan);
 //                        System.out.println(textUrl.get(i));
-                        String sSpan = "<a href=\"" + uriList.get(i) + "\"><span id=\"span" + i + "\" onmousedown=\"holdDown" + i + "()\" onmouseup=\"holdUp" + i + "()\">" + listSpan.get(i) + "</span></a>";
+                        String sSpan = "<a href=\"" + listText.get(i).getUrl() + "\"><span id=\"span" + i + "\" onmousedown=\"holdDown" + i + "()\" onmouseup=\"holdUp" + i + "()\">" + listText.get(i).getText() + "</span></a>";
                         span.append(sSpan);
 
                         String visibleAble = "//申明全局变量\n" +
@@ -845,9 +940,9 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
                                 "    }";
                         visibleAbles.append(visibleAble);
                     }
-                    for (int i = 0; i < videoList.size(); i++) {
+                    for (int i = 0; i < listVideo.size(); i++) {
                         //循环集合数据获取坐标后赋值给js代码
-                        String zuobiao = videoListUri.get(i).toString();
+                        String zuobiao = listVideo.get(i).getCoord();
                         int x = Integer.parseInt(zuobiao.substring(0, zuobiao.indexOf(",")));
                         int y = Integer.parseInt(zuobiao.substring(zuobiao.indexOf(",") + 1, zuobiao.indexOf(":")));
                         int xx = Integer.parseInt(zuobiao.substring(zuobiao.indexOf(":") + 1, zuobiao.lastIndexOf(",")));
@@ -866,8 +961,8 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
                                 "\t    width: 0px;" +
                                 "    }";
                         classVideos.append(videoclass);
-                        ftp.uploadFile("", videoList.get(i).toString().substring(videoList.get(i).toString().lastIndexOf("/") + 1, videoList.get(i).toString().length()), videoList.get(i).toString());
-                        String video = "<video id=\"video" + i + "\" class=\"video" + i + "\" src=\"./" + videoList.get(i).toString().substring(videoList.get(i).toString().lastIndexOf("/") + 1, videoList.get(i).toString().length()) + "\" controls=\"controls\"></video>";
+                        ftp.uploadFile("", listVideo.get(i).getPath().substring(listVideo.get(i).getPath().lastIndexOf("/") + 1, listVideo.get(i).getPath().length()),listVideo.get(i).getPath());
+                        String video = "<video id=\"video" + i + "\" class=\"video" + i + "\" src=\"./" + listVideo.get(i).getPath().substring(listVideo.get(i).getPath().lastIndexOf("/") + 1, listVideo.get(i).getPath().length()) + "\" controls=\"controls\"></video>";
                         videos.append(video);
                         String videoJs = "\t            var vx" + i + " = parseInt(picw*" + picx1 + ");          //计算出坐标与总长度的商，当做参数\\n\" +\n" +
                                 "\t            var vy" + i + " = parseInt(pich*" + picy1 + ");\n" +
@@ -878,9 +973,9 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
                                 "\t           document.getElementById('video" + i + "').style.width=vxx" + i + "-vx" + i + "+\"px\";\n";
                         videosJS.append(videoJs);
                     }
-                    for (int i = 0; i < audioList.size(); i++) {
+                    for (int i = 0; i < listAudio.size(); i++) {
                         //循环集合数据获取坐标后赋值给js代码
-                        String zuobiao = audioListUri.get(i).toString();
+                        String zuobiao = listAudio.get(i).getCoord();
                         int x = Integer.parseInt(zuobiao.substring(0, zuobiao.indexOf(",")));
                         int y = Integer.parseInt(zuobiao.substring(zuobiao.indexOf(",") + 1, zuobiao.indexOf(":")));
                         int xx = Integer.parseInt(zuobiao.substring(zuobiao.indexOf(":") + 1, zuobiao.lastIndexOf(",")));
@@ -899,8 +994,8 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
                                 "\t    width: 0px;" +
                                 "    }";
                         classAudios.append(audioclass);
-                        ftp.uploadFile("", audioList.get(i).toString().substring(audioList.get(i).toString().lastIndexOf("/") + 1, audioList.get(i).toString().length()), audioList.get(i).toString());
-                        String audio = "<audio id=\"audio" + i + "\" class=\"audio" + i + "\" src=\"./" + audioList.get(i).toString().substring(audioList.get(i).toString().lastIndexOf("/") + 1, audioList.get(i).toString().length()) + "\" controls=\"controls\"></audio>";
+                        ftp.uploadFile("", listAudio.get(i).getPath().substring(listAudio.get(i).getPath().lastIndexOf("/") + 1, listAudio.get(i).getPath().length()), listAudio.get(i).getPath());
+                        String audio = "<audio id=\"audio" + i + "\" class=\"audio" + i + "\" src=\"./" + listAudio.get(i).getPath().substring(listAudio.get(i).getPath().lastIndexOf("/") + 1, listAudio.get(i).getPath().length()) + "\" controls=\"controls\"></audio>";
                         audios.append(audio);
                         String audioJs = "\t            var ax" + i + " = parseInt(picw*" + picx1 + ");          //计算出坐标与总长度的商，当做参数\\n\" +\n" +
                                 "\t            var ay" + i + " = parseInt(pich*" + picy1 + ");\n" +
@@ -911,9 +1006,9 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
                                 "\t           document.getElementById('audio" + i + "').style.width=axx" + i + "-ax" + i + "+\"px\";\n";
                         audiosJS.append(audioJs);
                     }
-                    for (int i = 0; i < photoList.size(); i++) {
+                    for (int i = 0; i < listPhoto.size(); i++) {
                         //循环集合数据获取坐标后赋值给js代码
-                        String zuobiao = photoListUri.get(i).toString();
+                        String zuobiao = listPhoto.get(i).getCoord();
                         int x = Integer.parseInt(zuobiao.substring(0, zuobiao.indexOf(",")));
                         int y = Integer.parseInt(zuobiao.substring(zuobiao.indexOf(",") + 1, zuobiao.indexOf(":")));
                         int xx = Integer.parseInt(zuobiao.substring(zuobiao.indexOf(":") + 1, zuobiao.lastIndexOf(",")));
@@ -932,8 +1027,8 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
                                 "\t    width: 0px;" +
                                 "    }";
                         classAudios.append(audioclass);
-                        ftp.uploadFile("", photoList.get(i).toString().substring(photoList.get(i).toString().lastIndexOf("/") + 1, photoList.get(i).toString().length()), photoList.get(i).toString());
-                        String audio = "<a href=\"" + photoUrl.get(i) + "\"><img id=\"photo" + i + "\" class=\"photo" + i + "\" src=\"./" + photoList.get(i).toString().substring(photoList.get(i).toString().lastIndexOf("/") + 1, photoList.get(i).toString().length()) + "\" controls=\"controls\"></img></a>";
+                        ftp.uploadFile("", listPhoto.get(i).getPath().substring(listPhoto.get(i).getPath().lastIndexOf("/") + 1, listPhoto.get(i).getPath().length()), listPhoto.get(i).getPath());
+                        String audio = "<a href=\"" + listPhoto.get(i).getUrl() + "\"><img id=\"photo" + i + "\" class=\"photo" + i + "\" src=\"./" + listPhoto.get(i).getPath().substring(listPhoto.get(i).getPath().lastIndexOf("/") + 1, listPhoto.get(i).getPath().length()) + "\" controls=\"controls\"></img></a>";
                         audios.append(audio);
                         String audioJs = "\t            var px" + i + " = parseInt(picw*" + picx1 + ");          //计算出坐标与总长度的商，当做参数\\n\" +\n" +
                                 "\t            var py" + i + " = parseInt(pich*" + picy1 + ");\n" +
@@ -945,107 +1040,118 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
                                 "\t           document.getElementById('photo" + i + "').style.height=pyy" + i + "-py" + i + "+\"px\";\n";
                         audiosJS.append(audioJs);
                     }
-
-
                     String imgpath = path.substring(path.lastIndexOf("/") + 1, path.length());
-                    String str = "<!DOCTYPE html>\n" +
-                            "<html>\n" +
-                            " <head>\n" +
-                            "  <meta charset=\"utf-8\">\n" +
-                            "  <meta name=\"viewport\" content=\"width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no\" />\n" +
-                            "  <title></title>\n" +
-                            "  <style type=\"text/css\">\n" +
-                            "   .imgh{\n" +
-                            "    margin: auto;\n" +
-                            "    position: absolute;\n" +
-                            "    background-size: contain;\n" +
-                            "    top:0;\n" +
-                            "    left: 0;\n" +
-                            "    right: 0;\n" +
-                            "    bottom: 0;\n" +
-                            "    max-width: 100%;//图片宽度大小\n" +
-                            "    max-height: 100%;//图片高度大小" +
-                            "    width:auto;\n" +
-                            "    height: auto;\n" +
+                    try {
+                        conn = dbUtil.getCon();
+                        List<Url> urls = urlDao.findUrlByName(conn, urlName);
+                        String str = "<!DOCTYPE html>\n" +
+                                "<html>\n" +
+                                " <head>\n" +
+                                "  <meta charset=\"utf-8\">\n" +
+                                "  <meta name=\"viewport\" content=\"width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no\" />\n" +
+                                "  <title></title>\n" +
+                                "  <style type=\"text/css\">\n" +
+                                "   .imgh{\n" +
+                                "    margin: auto;\n" +
+                                "    position: absolute;\n" +
+                                "    background-size: contain;\n" +
+                                "    top:0;\n" +
+                                "    left: 0;\n" +
+                                "    right: 0;\n" +
+                                "    bottom: 0;\n" +
+                                "    max-width: 100%;//图片宽度大小\n" +
+                                "    max-height: 100%;//图片高度大小" +
+                                "    width:auto;\n" +
+                                "    height: auto;\n" +
+                                "   }\n" +
+                                classSpan + "\n" +
+                                classVideos + "\n" +
+                                classAudios + "\n" +
+                                "  </style>\n" +
+                                " </head>\n" +
+                                "  <body onLoad=\"displayDate()\">\n" +
+                                "<a href=\"http://" + serverIP + ":8001/fb?id=" + urls.get(0).getId() + "\">给点建议</a>" +
+                                "   \t\t<img id=\"banner1\" ondblclick=\"displayDate()\" usemap=\"#banner\" class=\"imgh\" src=\"" + "./" + imgpath + "\" />\n" +
+                                videos + "\n" +
+                                audios + "\n" +
+                                span + "\n" +
+                                "   \t\t<map name=\"banner\">\n" +
+                                sb +
+                                "\t\t</map>\n" +
+                                "<script>\n" +
+                                "\t\t\t\n" +
+                                "\t\t\tfunction displayDate(){\n" +
+                                "\t\t\t\tvar picw = document.getElementById(\"banner1\").width;\n" +
+                                "\t\t\t\tvar pich = document.getElementById(\"banner1\").height;\n" +
+                                "var box = document.getElementById('banner1');\n" +
+                                "var obj = getRect(box);\n" +
+                                js + "\n" +
+                                videosJS + "\n" +
+                                audiosJS + "\n" +
+                                "\t\t\t}\n" +
+                                "\tfunction getRect(elements) {\n" +
+                                "hengshuping(elements);\n" +
+                                "\tvar rect = elements.getBoundingClientRect();\n" +
+                                "\tw = rect.width || rect.right - rect.left;\n" +
+                                "\th = rect.height || rect.bottom - rect.top;\n" +
+                                "\tww = document.documentElement.clientWidth; //浏览器可见宽\n" +
+                                "\thh = document.documentElement.clientHeight; //浏览器可见高\n" +
+                                "\treturn { // 兼容ie多出的两个px\n" +
+                                "\ttop: Math.floor(rect.top), // 元素顶边到浏览器底边距离\n" +
+                                "\tbottom: Math.floor(hh - rect.bottom), // 元素底边到浏览器底边距离\n" +
+                                "\tleft: Math.floor(rect.left), // 元素左边到浏览器底边距离\n" +
+                                "\tright: Math.floor(ww - rect.right) // 元素底右到浏览器底边距离\n" +
+                                "\t};\n" +
+                                "\t};\n" +
+                                "window.addEventListener(\"onorientationchange\" in window ? \"orientationchange\" : \"resize\", displayDate, false);\n" +
+                                "            function hengshuping(elements) {\n" +
+                                "            \t\n" +
+                                "                        var shu=window.localStorage.getItem('name')\n" +
+                                "                if (window.orientation == 0 || window.orientation == 180) {\n" +
+                                "                \n" +
+                                "                        \n" +
+                                "                        if(shu=='a'){\n" +
+                                "                                window.location.reload();\n" +
+                                "                                window.localStorage.setItem('name','b');\n" +
+                                "                        }\n" +
+                                "                        orientation = 'portrait';\n" +
+                                "                        return false;\n" +
+                                "                    }else if (window.orientation == 90 || window.orientation == -90) {\n" +
+                                "                        if(shu=='b'){\n" +
+                                "                                window.location.reload();\n" +
+                                "                                window.localStorage.setItem('name','a');\n" +
+                                "                        }\n" +
+                                "                       \n" +
+                                "                        elements.style.top=elements.height+50+\"px\";\n" +
+                                "                        orientation = 'landscape';\n" +
+                                "                        return false;\n" +
+                                "                    }\n" +
+                                "              }\n" +
+                                visibleAbles +
+                                "\t\t</script>\n" +
+                                "</body>\n" +
+                                "</html>";
 
-                            "   }\n" +
-                            classSpan + "\n" +
-                            classVideos + "\n" +
-                            classAudios + "\n" +
-                            "  </style>\n" +
-                            " </head>\n" +
-                            "  <body onLoad=\"displayDate()\">\n" +
-                            "   \t\t<img id=\"banner1\" ondblclick=\"displayDate()\" usemap=\"#banner\" class=\"imgh\" src=\"" + "./" + imgpath + "\" />\n" +
-                            videos + "\n" +
-                            audios + "\n" +
-                            span + "\n" +
-                            "   \t\t<map name=\"banner\">\n" +
-                            sb +
-                            "\t\t</map>\n" +
-                            "<script>\n" +
-                            "\t\t\t\n" +
-                            "\t\t\tfunction displayDate(){\n" +
-                            "\t\t\t\tvar picw = document.getElementById(\"banner1\").width;\n" +
-                            "\t\t\t\tvar pich = document.getElementById(\"banner1\").height;\n" +
-                            "var box = document.getElementById('banner1');\n" +
-                            "var obj = getRect(box);\n" +
-                            js + "\n" +
-                            videosJS + "\n" +
-                            audiosJS + "\n" +
-                            "\t\t\t}\n" +
-                            "\tfunction getRect(elements) {\n" +
-                            "hengshuping(elements);\n" +
-                            "\tvar rect = elements.getBoundingClientRect();\n" +
-                            "\tw = rect.width || rect.right - rect.left;\n" +
-                            "\th = rect.height || rect.bottom - rect.top;\n" +
-                            "\tww = document.documentElement.clientWidth; //浏览器可见宽\n" +
-                            "\thh = document.documentElement.clientHeight; //浏览器可见高\n" +
-                            "\treturn { // 兼容ie多出的两个px\n" +
-                            "\ttop: Math.floor(rect.top), // 元素顶边到浏览器底边距离\n" +
-                            "\tbottom: Math.floor(hh - rect.bottom), // 元素底边到浏览器底边距离\n" +
-                            "\tleft: Math.floor(rect.left), // 元素左边到浏览器底边距离\n" +
-                            "\tright: Math.floor(ww - rect.right) // 元素底右到浏览器底边距离\n" +
-                            "\t};\n" +
-                            "\t};\n" +
-                            "window.addEventListener(\"onorientationchange\" in window ? \"orientationchange\" : \"resize\", displayDate, false);\n" +
-                            "            function hengshuping(elements) {\n" +
-                            "            \t\n" +
-                            "                if (window.orientation == 0 || window.orientation == 180) {\n" +
-                            "                \n" +
-                            "                        var shu=window.localStorage.getItem('name')\n" +
-                            "                        \n" +
-                            "                        if(shu=='a'){\n" +
-                            "                                window.location.reload();\n" +
-                            "                                window.localStorage.setItem('name','b');\n" +
-                            "                        }\n" +
-                            "                        alert('请打开自选旋转使用横屏');\n" +
-                            "                        orientation = 'portrait';\n" +
-                            "                        return false;\n" +
-                            "                    }else if (window.orientation == 90 || window.orientation == -90) {\n" +
-                            "                        window.localStorage.setItem('name','a');\n" +
-                            "                       \n" +
-                            "                        elements.style.top=elements.height+50+\"px\";\n" +
-                            "                        orientation = 'landscape';\n" +
-                            "                        return false;\n" +
-                            "                    }\n" +
-                            "              }\n" +
-                            visibleAbles +
-                            "\t\t</script>\n" +
-                            "</body>\n" +
-                            "</html>";
-
-                    writeLocalStrTwo(str, "D:\\tupian.html");
-
+                        writeLocalStrTwo(str, "D:\\tupian.html");
+                    } catch (Exception ee) {
+                        ee.printStackTrace();
+                    } finally {
+                        try {
+                            conn.close();
+                        } catch (SQLException ee) {
+                            ee.printStackTrace();
+                        }
+                    }
                     if (urlName != null) {
                         String Cpath = path.replace("/", "\\");
                         String p = Cpath.substring(Cpath.lastIndexOf("\\") + 1, Cpath.length());
                         System.out.println(p + "," + Cpath);
                         ftp.uploadFile("", p, Cpath);
                         ftp.uploadFile("", pageName + ".html", "D:\\tupian.html");
-                        fileName = urlName+".jpg";
+                        fileName = urlName + ".jpg";
 //                        erweima();
                         //  QRcode 二维码生成测试
-                        qrCodeUtil.QRCodeCreate("http://" + serverIP + "/" + pageName + ".html",  fileName, 15, null);
+                        qrCodeUtil.QRCodeCreate("http://" + serverIP + "/" + pageName + ".html", fileName, 15, null);
                         ImageIcon icon = new ImageIcon(fileName);
                         showMessageDialog(null, null, "生成的二维码", 0, icon);
                         deleteFile(fileName);//删除本地原二维码文件
@@ -1079,12 +1185,20 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
 
                             Jdlog2Field1.setText(urlName);
                             pageName = urlName;
-                            if (urlName!=null){
-//                                ac = new ClassPathXmlApplicationContext("applicationContext.xml");
-                                ac = new AnnotationConfigApplicationContext(SpringConfiguration.class);
-                                urlService = (UrlServiceImpl) ac.getBean("urlService");
-                                List<Url> url = urlService.findUrlByName(urlName);
-                                Jdlog2Field2.setText(url.get(0).getAnnotation());
+                            if (urlName != null) {
+                                try {
+                                    conn = dbUtil.getCon();
+                                    List<Url> urls = urlDao.findUrlByName(conn, urlName);
+                                    Jdlog2Field2.setText(urls.get(0).getAnnotation());
+                                } catch (Exception ee) {
+                                    ee.printStackTrace();
+                                } finally {
+                                    try {
+                                        conn.close();
+                                    } catch (SQLException ee) {
+                                        ee.printStackTrace();
+                                    }
+                                }
                             }
 
                             Jdlog2.setResizable(false);
@@ -1138,39 +1252,57 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
             lastOptions = 4;
             jb8.setIcon(bgImg("img/hVideo.jpg"));
         } else if (e.getSource() == Jdlog1Btn1) {//输入文本确定按钮
-            String inputValue = Jdlog1Field.getText();
-            uriList.add(inputValue);//类型链接集合
-            textUrl.add(inputValue);//文字链接链接
+            String inputValue = "http://" + Jdlog1Field.getText() + ".html";
+            if (Jdlog1Field.getText().equals("") || Jdlog1Field.getText() == null) {
+                inputValue = "";
+            }
+//            uriList.add(inputValue);//类型链接集合
+//            textUrl.add(inputValue);//文字链接链接
 //            String s = JOptionPane.showInputDialog("请输入文字内容");
             String s = Jdlog1Area.getText();
-            listSpan.add(s);//文字内容链接
-            textListUri.add(banner);//文字坐标集合
+//            listSpan.add(s);//文字内容链接
+//            textListUri.add(banner);//文字坐标集合
             jLabels.add(new JLabel(s, JLabel.CENTER));
 //            jLabels.get(jLabels.size() - 1).setText(s);
             jLabels.get(jLabels.size() - 1).setBounds(x, y, x1 - x, y1 - y);
 
             myPanel.add(jLabels.get(jLabels.size() - 1));
 
-            dataList.add("@TEXT:");
+//            dataList.add("@TEXT:");
+            Data data = new Data();
+            data.setType("@TEXT:");
+            data.setUrl(inputValue);
+            data.setCoord(banner);
+            data.setText(s);
+            data.setPath("");
+            listData.add(data);
             JOptionPane.showMessageDialog(Jdlog1, "添加成功");
             Jdlog1.dispose();
         } else if (e.getSource() == Jdlog1Btn2) {//输入文本重置按钮
             Jdlog1Area.setText("");
-            Jdlog1Field.setText("http://");
+            Jdlog1Field.setText("");
         } else if (e.getSource() == Jdlog2btn1Out) {//输出弹出框确定按钮
             //|| Jdlog2Field2.getText().isEmpty()
-            if (Jdlog2Field1.getText().isEmpty() ) {
+            if (Jdlog2Field1.getText().isEmpty()) {
                 showMessageDialog(null, "文本内容不能为空");
                 return;
             }
-//            ac = new ClassPathXmlApplicationContext("applicationContext.xml");
-            ac = new AnnotationConfigApplicationContext(SpringConfiguration.class);
-            urlService = (UrlServiceImpl) ac.getBean("urlService");
-            List<Url> allUrl = urlService.findAllUrl();
-            for (Url url : allUrl){
-                if (url.getIphoto().equals(urlName)){
-                    showMessageDialog(Jdlog2,"名称重复，请重新输入");
-                    return;
+            try {
+                conn = dbUtil.getCon();
+                List<Url> allUrl = urlDao.findAllUrl(conn);
+                for (Url url : allUrl) {
+                    if (url.getIphoto().equals(urlName)) {
+                        showMessageDialog(Jdlog2, "名称重复，请重新输入");
+                        return;
+                    }
+                }
+            } catch (Exception ee) {
+                ee.printStackTrace();
+            } finally {
+                try {
+                    conn.close();
+                } catch (SQLException ee) {
+                    ee.printStackTrace();
                 }
             }
             urlName = Jdlog2Field1.getText();
@@ -1181,10 +1313,10 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
             System.out.println(p + "," + Cpath);
             ftp.uploadFile("", p, Cpath);
             ftp.uploadFile("", pageName + ".html", "D:\\tupian.html");
-            fileName = urlName+".jpg";
+            fileName = urlName + ".jpg";
 //            erweima();//保存二维码生成路径
             //QRcode 二维码生成测试
-            qrCodeUtil.QRCodeCreate("http://"+serverIP+"/" + pageName + ".html", fileName, 15, null);
+            qrCodeUtil.QRCodeCreate("http://" + serverIP + "/" + pageName + ".html", fileName, 15, null);
             ImageIcon icon = new ImageIcon(fileName);
             showMessageDialog(null, null, "生成的二维码", 0, icon);
             deleteFile(fileName);//删除本地原二维码文件
@@ -1202,140 +1334,147 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
             pageName = urlName;
             annotation = Jdlog2Field2.getText();//获取注释
 
-            //获取对象
-//            ac = new ClassPathXmlApplicationContext("applicationContext.xml");
-            ac = new AnnotationConfigApplicationContext(SpringConfiguration.class);
-            urlService = (UrlServiceImpl) ac.getBean("urlService");
-            List<Url> allUrl = urlService.findAllUrl();
-            for (Url url : allUrl){
-                if (url.getIphoto().equals(urlName)){
-                    showMessageDialog(Jdlog2,"名称重复，请重新输入");
-                    return;
+            try {
+                conn = dbUtil.getCon();
+                List<Url> allUrl = urlDao.findAllUrl(conn);
+                for (Url url : allUrl) {
+                    if (url.getIphoto().equals(urlName)) {
+                        showMessageDialog(Jdlog2, "名称重复，请重新输入");
+                        return;
+                    }
+                }
+                Url url = new Url();
+                url.setIphoto(urlName);
+                url.setIphotoUrl(path);
+                url.setO_id(o_id);
+                url.setIhtml(pageName + ".html");
+                url.setAnnotation(annotation);
+                urlDao.saveUrl(conn, url);
+                List<Url> urls = urlDao.findUrlByName(conn, urlName);
+                //保存信息
+                for (Data data : listData) {
+                    data.setUid(urls.get(0).getId());
+                    dataDao.saveData(conn, data);
+                }
+
+            } catch (Exception ee) {
+                ee.printStackTrace();
+            } finally {
+                try {
+                    conn.close();
+                } catch (SQLException ee) {
+                    ee.printStackTrace();
                 }
             }
-            Url url = new Url();
-            url.setIphoto(urlName);
-            url.setIphotoUrl(path);
-            url.setO_id(o_id);
-            url.setIhtml(pageName + ".html");
-            url.setAnnotation(annotation);
-            urlService.saveUrl(url);
-            List<Url> urls = urlService.findUrlByName(urlName);
-            //保存信息
-            for (int i = 0; i < dataList.size(); i++) {
-                RouteServiceImpl routeService = (RouteServiceImpl) ac.getBean("routeService");
-                Route route = new Route();
-                route.setType(dataList.get(i).toString());
-                route.setUrl(String.valueOf(uriList.get(i)));
-                route.setRoute(list.get(i));
-                route.setU_id(urls.get(0).getId());
-                routeService.saveRoute(route);
-            }
-            for (int i = 0; i < listSpan.size(); i++) {
-                TextServiceImpl testService = (TextServiceImpl) ac.getBean("textService");
-                Text text = new Text();
-                text.setText(String.valueOf(listSpan.get(i)));
-                text.setTextListUrl(textListUri.get(i).toString());
-                text.setTextUrl(textUrl.get(i).toString());
-                text.setU_id(urls.get(0).getId());
-                testService.saveText(text);
-            }
-            for (int i = 0; i < photoList.size(); i++) {
-                PhotoServiceImpl photoService = (PhotoServiceImpl) ac.getBean("photoService");
-                Photo photo = new Photo();
-                photo.setPhotoListUrl(photoListUri.get(i).toString());
-                photo.setPhotoUrl(photoUrl.get(i).toString());
-                photo.setPhoto(photoList.get(i).toString());
-                photo.setU_id(urls.get(0).getId());
-                photoService.savePhoto(photo);
-            }
-            for (int i = 0; i < audioList.size(); i++) {
-                AudioServiceImpl audioService = (AudioServiceImpl) ac.getBean("audioService");
-                Audio audio = new Audio();
-                audio.setAudioUrl(audioListUri.get(i).toString());
-                audio.setAudio(audioList.get(i).toString());
-                audio.setU_id(urls.get(0).getId());
-                audioService.saveAudio(audio);
-            }
-            for (int i = 0; i < videoList.size(); i++) {
-                VideoServiceImpl videoService = (VideoServiceImpl) ac.getBean("videoService");
-                Video video = new Video();
-                video.setVideoUrl(videoListUri.get(i).toString());
-                video.setVideo(videoList.get(i).toString());
-                video.setU_id(urls.get(0).getId());
-                videoService.saveVideo(video);
-            }
-
             JOptionPane.showMessageDialog(null, "保存成功");
             Vector rowData = new Vector();
             rowData.add(urlName);
-            model.insertRow(model.getRowCount(),rowData);
+            model.insertRow(model.getRowCount(), rowData);
             Jdlog2.dispose();
         } else if (e.getSource() == Jdlog2btn2) {//保存弹出框重置按钮
             Jdlog2Field1.setText("");
             Jdlog2Field2.setText("");
         } else if (e.getSource() == btn1) {//加载弹出框确定按钮
+
+            pageName = null;
+            urlName = null;
+            path = null;
+            list.clear();
+            /*uriList.clear();
+            dataList.clear();
+            textListUri.clear();
+            listSpan.clear();
+            photoListUri.clear();
+            photoList.clear();
+            audioListUri.clear();
+            audioList.clear();
+            videoListUri.clear();
+            videoList.clear();*/
+            listData.clear();
+            listText.clear();
+            listPhoto.clear();
+            listAudio.clear();
+            listVideo.clear();
+            listCoord.clear();
+            listType.clear();
+            listUrl.clear();
+            listPath.clear();
+            x = 0;
+            y = 0;
+            x1 = 0;
+            y1 = 0;
+            banner = "0,0:0,0";
+            for (int i = 0; i < jLabels.size(); i++) {
+                jLabels.get(i).setBounds(0, 0, 0, 0);
+            }
+            jLabels.clear();
+            myPanel.rePaint(0, 0, 0, 0, list);
+
             urlName = jTable.getValueAt(jTable.getSelectedRow(), 0).toString();//获取选择框的第一列数据
             /*UrlServiceImpl urlService = (UrlServiceImpl) ac.getBean("urlService");
             List<Url> urls = urlService.findUrlByName(urlName);
             path = urls.get(0).getIphotoUrl();//获取选择框的路径
             loadDialog.dispose();*/
 
-            //获取对象
-//            ac = new ClassPathXmlApplicationContext("applicationContext.xml");
-            ac = new AnnotationConfigApplicationContext(SpringConfiguration.class);
-            urlService = (UrlServiceImpl) ac.getBean("urlService");
-            List<Url> urls = urlService.findUrlByName(urlName);
-            if (urls.size() > 1) {
-                showMessageDialog(null, "数据重复,取第一条");
-            }
-            path = urls.get(0).getIphotoUrl();
-            pageName = urlName;
-
-            RouteServiceImpl routeService = (RouteServiceImpl) ac.getBean("routeService");
-            List<Route> routes = routeService.findRouteByUid(urls.get(0).getId());
-            for (Route route : routes) {
-                dataList.add(route.getType());
-                if (route.getType().equals("@TEXT:")) {
-                    textUrl.add(route.getUrl());
-                } else if (route.getType().equals("@PHOTO:")) {
-                    photoUrl.add(route.getUrl());
+            try {
+                conn = dbUtil.getCon();
+                List<Url> urls = urlDao.findUrlByName(conn, urlName);
+                if (urls.size() > 1) {
+                    showMessageDialog(null, "数据重复,取第一条");
                 }
-                uriList.add(route.getUrl());
-                list.add(route.getRoute());
-            }
+                path = urls.get(0).getIphotoUrl();
+                pageName = urlName;
+                List<Data> datas = dataDao.findDataByUid(conn, urls.get(0).getId());
+                for (Data data : datas) {
+                    listData.add(data);
+                }
+                /*List<Route> routes = routeDao.findRouteByUid(conn, urls.get(0).getId());
+                for (Route route : routes) {
+                    dataList.add(route.getType());
+                    if (route.getType().equals("@TEXT:")) {
+                        textUrl.add(route.getUrl());
+                    } else if (route.getType().equals("@PHOTO:")) {
+                        photoUrl.add(route.getUrl());
+                    }
+                    uriList.add(route.getUrl());
+                    list.add(route.getRoute());
+                }
 
-            TextServiceImpl textService = (TextServiceImpl) ac.getBean("textService");
-            List<Text> texts = textService.findTextByUid(urls.get(0).getId());
-            for (Text text : texts) {
+                List<Text> texts = textDao.findTextByUid(conn, urls.get(0).getId());
+                for (Text text : texts) {
 //                textUrl.add(text.getTextUrl());
-                textListUri.add(text.getTextListUrl());
-                listSpan.add(text.getText());
-            }
+                    textListUri.add(text.getTextListUrl());
+                    listSpan.add(text.getText());
+                }
 
-            PhotoServiceImpl photoService = (PhotoServiceImpl) ac.getBean("photoService");
-            List<Photo> photos = photoService.findPhotoByUid(urls.get(0).getId());
-            for (Photo photo : photos) {
+                List<Photo> photos = photoDao.findPhotoByUid(conn, urls.get(0).getId());
+                for (Photo photo : photos) {
 //                photoUrl.add(photo.getPhotoUrl());
-                photoListUri.add(photo.getPhotoListUrl());
-                photoList.add(photo.getPhoto());
-            }
+                    photoListUri.add(photo.getPhotoListUrl());
+                    photoList.add(photo.getPhoto());
+                }
 
-            AudioServiceImpl audioService = (AudioServiceImpl) ac.getBean("audioService");
-            List<Audio> audios = audioService.findAudioByUid(urls.get(0).getId());
-            for (Audio audio : audios) {
-                audioListUri.add(audio.getAudioUrl());
-                audioList.add(audio.getAudio());
-            }
+                List<Audio> audios = audioDao.findAudioByUid(conn, urls.get(0).getId());
+                for (Audio audio : audios) {
+                    audioListUri.add(audio.getAudioUrl());
+                    audioList.add(audio.getAudio());
+                }
 
-            VideoServiceImpl videoService = (VideoServiceImpl) ac.getBean("videoService");
-            List<Video> videos = videoService.findVideoByUid(urls.get(0).getId());
-            for (Video video : videos) {
-                videoListUri.add(video.getVideoUrl());
-                videoList.add(video.getVideo());
+                List<Video> videos = videoDao.findVideoByUid(conn, urls.get(0).getId());
+                for (Video video : videos) {
+                    videoListUri.add(video.getVideoUrl());
+                    videoList.add(video.getVideo());
+                }*/
+            } catch (Exception ee) {
+                ee.printStackTrace();
+            } finally {
+                try {
+                    conn.close();
+                } catch (SQLException ee) {
+                    ee.printStackTrace();
+                }
             }
-
-            for (int i = 0; i < dataList.size(); i++) {
+            /*for (int i = 0; i < dataList.size(); i++) {
                 System.out.println("加载坐标:" + list.size());
                 String zuobiao = list.get(i);
                 int x = Integer.parseInt(zuobiao.substring(0, zuobiao.indexOf(",")));
@@ -1344,12 +1483,32 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
                 int yy = Integer.parseInt(zuobiao.substring(zuobiao.lastIndexOf(",") + 1, zuobiao.length()));
 
                 if (!dataList.get(i).equals("@TEXT:")) {
-                    jLabels.add(new JLabel(String.valueOf(dataList.get(i)), JLabel.CENTER));
+                    if (dataList.size()>i){
+                        jLabels.add(new JLabel(String.valueOf(dataList.get(i)), JLabel.CENTER));
+                    }
                 } else {
-                    jLabels.add(new JLabel(String.valueOf(listSpan.get(i)), JLabel.CENTER));
+                    if (listSpan.size()>i){
+                        jLabels.add(new JLabel(String.valueOf(listSpan.get(i)), JLabel.CENTER));
+                    }
                 }
                 jLabels.get(jLabels.size() - 1).setBounds(x, y, xx - x, yy - y);
                 myPanel.add(jLabels.get(jLabels.size() - 1));
+            }*/
+            for (Data data : listData) {
+                String zuobiao = data.getCoord();
+                int x = Integer.parseInt(zuobiao.substring(0, zuobiao.indexOf(",")));
+                int y = Integer.parseInt(zuobiao.substring(zuobiao.indexOf(",") + 1, zuobiao.indexOf(":")));
+                int xx = Integer.parseInt(zuobiao.substring(zuobiao.indexOf(":") + 1, zuobiao.lastIndexOf(",")));
+                int yy = Integer.parseInt(zuobiao.substring(zuobiao.lastIndexOf(",") + 1, zuobiao.length()));
+
+                if (!data.getType().equals("@TEXT:")) {
+                    jLabels.add(new JLabel(String.valueOf(data.getType()), JLabel.CENTER));
+                } else {
+                    jLabels.add(new JLabel(String.valueOf(data.getText()), JLabel.CENTER));
+                }
+                jLabels.get(jLabels.size() - 1).setBounds(x, y, xx - x, yy - y);
+                myPanel.add(jLabels.get(jLabels.size() - 1));
+                list.add(data.getCoord());
             }
             loadDialog.dispose();
         } else if (e.getSource() == btn2) {//加载弹出框取消按钮
@@ -1364,7 +1523,7 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
         myPanel.add(centerLabel, new Integer(Integer.MIN_VALUE));
         centerLabel.setBounds(0, 0, images.getIconWidth(), images.getIconHeight());
         myPanel.setBounds(9, 8, panelCenter.getWidth() - 18, panelCenter.getHeight() - 16);
-        myPanel.setBounds((myPanel.getWidth()-centerLabel.getWidth())/2,(myPanel.getHeight()-centerLabel.getHeight())/2,centerLabel.getWidth(),centerLabel.getHeight());
+        myPanel.setBounds((myPanel.getWidth() - centerLabel.getWidth()) / 2, (myPanel.getHeight() - centerLabel.getHeight()) / 2, centerLabel.getWidth(), centerLabel.getHeight());
         myPanel.rePaint(list);
     }
 
@@ -1479,6 +1638,7 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
             e.printStackTrace();
         }
     }
+
     /**
      * 删除文件
      *
@@ -1486,7 +1646,7 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
      * @return
      * @throws IOException
      */
-    public static boolean deleteFile1(String pathname){
+    public static boolean deleteFile1(String pathname) {
         boolean result = false;
         File file = new File(pathname);
         if (file.exists()) {
@@ -1496,11 +1656,11 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
         }
         return result;
     }
+
     /**
      * 删除单个文件
      *
-     * @param fileName
-     *            要删除的文件的文件名
+     * @param fileName 要删除的文件的文件名
      * @return 单个文件删除成功返回true，否则返回false
      */
     public static boolean deleteFile(String fileName) {
@@ -1553,10 +1713,10 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
 
     public void save() {
         if (path != null) {
-            myDialog = new MyDialog(jFrame,"选择所属",true);
+            myDialog = new MyDialog(jFrame, "选择所属", true);
             myDialog.setLocationRelativeTo(this);
             myDialog.setVisible(true);
-            if (myDialog.getMessage()==1){
+            if (myDialog.getMessage() == 1) {
                 o_id = myDialog.getO_id();
             }
             Jdlog2 = new JDialog(jFrame, "请输入");
@@ -1588,12 +1748,20 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
 
             Jdlog2Field1.setText(urlName);
             pageName = urlName;
-            if (urlName!=null){
-//                ac = new ClassPathXmlApplicationContext("applicationContext.xml");
-                ac = new AnnotationConfigApplicationContext(SpringConfiguration.class);
-                urlService = (UrlServiceImpl) ac.getBean("urlService");
-                List<Url> url = urlService.findUrlByName(urlName);
-                Jdlog2Field2.setText(url.get(0).getAnnotation());
+            if (urlName != null) {
+                try {
+                    conn = dbUtil.getCon();
+                    List<Url> urls = urlDao.findUrlByName(conn, urlName);
+                    Jdlog2Field2.setText(urls.get(0).getAnnotation());
+                } catch (Exception ee) {
+                    ee.printStackTrace();
+                } finally {
+                    try {
+                        conn.close();
+                    } catch (SQLException ee) {
+                        ee.printStackTrace();
+                    }
+                }
             }
 
             Jdlog2.setResizable(false);
@@ -1626,7 +1794,7 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
                 urlName = null;
                 path = null;
                 list.clear();
-                uriList.clear();
+                /*uriList.clear();
                 dataList.clear();
                 textListUri.clear();
                 listSpan.clear();
@@ -1635,7 +1803,16 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
                 audioListUri.clear();
                 audioList.clear();
                 videoListUri.clear();
-                videoList.clear();
+                videoList.clear();*/
+                listData.clear();
+                listText.clear();
+                listPhoto.clear();
+                listAudio.clear();
+                listVideo.clear();
+                listCoord.clear();
+                listType.clear();
+                listUrl.clear();
+                listPath.clear();
                 for (int i = 0; i < jLabels.size(); i++) {
                     jLabels.get(i).setBounds(0, 0, 0, 0);
                 }
@@ -1655,16 +1832,26 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
         btn2.addActionListener(this);
         jPanel.add(btn1);
         jPanel.add(btn2);
-        urlService = (UrlServiceImpl) ac.getBean("urlService");
-        List<Url> urls = urlService.findAllUrl();
-        photo = new String[urls.size()][2];
-        for (int i = 0; i < urls.size(); i++) {
-            photo[i][0] = urls.get(i).getIphoto();
-            if (urls.get(i).getO_id()!=0){
-                List<Url> urlLs = urlService.findUrlById(urls.get(i).getO_id());
-                photo[i][1] = urlLs.get(0).getIphoto();
-            }else {
-                photo[i][1] = "无";
+        try {
+            conn = dbUtil.getCon();
+            List<Url> urls = urlDao.findAllUrl(conn);
+            photo = new String[urls.size()][2];
+            for (int i = 0; i < urls.size(); i++) {
+                photo[i][0] = urls.get(i).getIphoto();
+                if (urls.get(i).getO_id() != 0) {
+                    List<Url> urlLs = urlDao.findUrlById(conn, urls.get(i).getO_id());
+                    photo[i][1] = urlLs.get(0).getIphoto();
+                } else {
+                    photo[i][1] = "无";
+                }
+            }
+        } catch (Exception ee) {
+            ee.printStackTrace();
+        } finally {
+            try {
+                conn.close();
+            } catch (SQLException ee) {
+                ee.printStackTrace();
             }
         }
         jTable = new JTable(photo, cum) {
@@ -1689,16 +1876,25 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
     public void reJsp() {
         //子级选择弹出框
         //右侧显示列表
-//        ac = new ClassPathXmlApplicationContext("applicationContext.xml");
-        ac = new AnnotationConfigApplicationContext(SpringConfiguration.class);
-        urlService = (UrlServiceImpl) ac.getBean("urlService");
-        List<Url> urls = urlService.findAllUrl();
-        data = new String[urls.size()][1];
-        for (int i = 0; i < urls.size(); i++) {
-            data[i][0] = urls.get(i).getIphoto();
+        try {
+            conn = dbUtil.getCon();
+            List<Url> urls = urlDao.findAllUrl(conn);
+            data = new String[urls.size()][1];
+            for (int i = 0; i < urls.size(); i++) {
+                data[i][0] = urls.get(i).getIphoto();
+            }
+        } catch (Exception ee) {
+            ee.printStackTrace();
+        } finally {
+            try {
+                conn.close();
+            } catch (SQLException ee) {
+                ee.printStackTrace();
+            }
         }
 
-        model = new DefaultTableModel(data,column);
+
+        model = new DefaultTableModel(data, column);
         table = new JTable(model);
         table.updateUI();//刷新table
         jsp.setViewportView(table);//刷新jsp
@@ -1713,7 +1909,7 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
         panelRightList.add(jsp);
 
 //        jsp.setBounds(9, jLabel.getHeight(), jFrame.getWidth() / 7-14, panelRight.getHeight() - panelRight.getHeight() / 10 - 50);
-        jsp.setBounds(9, jLabel.getHeight(), jFrame.getWidth() / 7 + 14, panelRight.getHeight() - panelRight.getHeight() / 10*3 - 50);
+        jsp.setBounds(9, jLabel.getHeight(), jFrame.getWidth() / 7 + 14, panelRight.getHeight() - panelRight.getHeight() / 10 * 3 - 50);
 
         //分别设置水平和垂直滚动条自动出现
         jsp.setHorizontalScrollBarPolicy(
@@ -1747,16 +1943,15 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
         jsp.getViewport().setOpaque(false);//将jsp的viewport设置为透明
     }
 
-    public static void file(String fileName,String context){
+    public static void file(String fileName, String context) {
 
-        File a=new File(fileName); //新建文件
+        File a = new File(fileName); //新建文件
         System.out.println(a.getPath());
         try {
-            if(!a.exists()) {    //如果文件不存在则新建文件
+            if (!a.exists()) {    //如果文件不存在则新建文件
                 a.createNewFile();
             }
-        }
-        catch(IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
         try {
@@ -1765,19 +1960,19 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
             fw.write(context);//写入字符串
             fw.flush();//刷新缓存
             fw.close();//关闭输入流
-        }catch(IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
         try {
             FileReader fw = new FileReader(a);
             BufferedReader bf = new BufferedReader(fw);
-            String str=null;
+            String str = null;
             // 按行读取字符串
             while ((str = bf.readLine()) != null) {
                 System.out.println(str);//输出文件中的字符串
             }
             bf.close();
-        }catch(IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
@@ -1793,7 +1988,7 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
             while ((tempString = reader.readLine()) != null) {
                 Thread.sleep(500);
                 System.out.println(tempString);
-                if (tempString!=null){
+                if (tempString != null) {
                     return tempString;
                 }
                 line++;
@@ -1835,7 +2030,6 @@ class MyPanel extends JPanel {
         /*g.drawRect(, y+1, e.getX()-x+4, e.getY()-y+28);
         System.out.println("x:"+x+"y:"+ y+ "x:"+e.getX()+"y:"+ e.getY());*/
 //        g.drawRect(x, y, x1 - x, y1 - y);
-        System.out.println("画出坐标：" + x + "," + y + "," + x1 + "," + y1);
         if (list.size() > 0) {
             for (int i = 0; i < list.size(); i++) {
                 String s1 = String.valueOf(list.get(i));
@@ -1845,10 +2039,8 @@ class MyPanel extends JPanel {
                 int x5 = Integer.parseInt(s1.substring(s1.indexOf(":") + 1, s1.lastIndexOf(",")));
                 int y5 = Integer.parseInt(s1.substring(s1.lastIndexOf(",") + 1, s1.length()));
                 g.drawRect(x4, y4, x5 - x4, y5 - y4);
-                System.out.println("保存矩形框：" + x4 + "," + y4 + "," + x5 + "," + y5);
             }
         } else {
-
             g.drawRect(x, y, x1 - x, y1 - y);
         }
     }
@@ -1918,17 +2110,20 @@ class MyDialog extends JDialog implements ActionListener {
     JScrollPane jScrollPane;
     JPanel jPanel = new JPanel();
     ApplicationContext ac;
-    UrlServiceImpl urlService;
     //返回值
     int o_id;
+
+    private Connection conn = null;
+    private DbUtil dbUtil = new DbUtil();
+    private UrlDao urlDao = new UrlDao();
 
     public MyDialog(JFrame owner, String title, boolean modal) {
         super(owner, title, modal);
         Container cont = getContentPane();
         cont.setLayout(new BorderLayout());
-        yes = new JButton("Yse");
+        yes = new JButton("确定");
         yes.addActionListener(this);
-        no = new JButton("No");
+        no = new JButton("取消");
         no.addActionListener(this);
         jPanel.add(yes);
         jPanel.add(no);
@@ -1943,35 +2138,54 @@ class MyDialog extends JDialog implements ActionListener {
         });
         //访问数据库
         //加载配置文件
-        ac = new ClassPathXmlApplicationContext("classpath:applicationContext.xml");
-        //获取对象
-        urlService = (UrlServiceImpl) ac.getBean("urlService");
-        List<Url> urlList = urlService.findAllUrl();
+        try {
+            conn = dbUtil.getCon();
+            List<Url> urlList = urlDao.findAllUrl(conn);
 
-        photo = new String[urlList.size()][2];
-        for (int i = 0; i < urlList.size(); i++) {
-            photo[i][0] = urlList.get(i).getIphoto();
-            if (urlList.get(i).getO_id()!=0){
-                List<Url> urls = urlService.findUrlById(urlList.get(i).getO_id());
-                photo[i][1] = urls.get(0).getIphoto();
-            }else {
-                photo[i][1] = "无";
+            photo = new String[urlList.size()][2];
+            for (int i = 0; i < urlList.size(); i++) {
+                photo[i][0] = urlList.get(i).getIphoto();
+                if (urlList.get(i).getO_id() != 0) {
+                    List<Url> urls = urlDao.findUrlById(conn, urlList.get(i).getO_id());
+                    photo[i][1] = urls.get(0).getIphoto();
+                } else {
+                    photo[i][1] = "无";
+                }
+            }
+        } catch (Exception ee) {
+            ee.printStackTrace();
+        } finally {
+            try {
+                conn.close();
+            } catch (SQLException ee) {
+                ee.printStackTrace();
             }
         }
         jTable = new JTable(photo, cum);
         jScrollPane = new JScrollPane(jTable, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         cont.add(jScrollPane, BorderLayout.CENTER);
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        setSize(screenSize.width/2, screenSize.height/2);
+        setSize(screenSize.width / 2, screenSize.height / 2);
         setResizable(false);
     }
 
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == yes) {
             message = YES;
-            String urlName = jTable.getValueAt(jTable.getSelectedRow(),0).toString();//读取你获取行号的某一列的值（也就是字段）
-            List<Url> urls = urlService.findUrlByName(urlName);
-            o_id = urls.get(0).getId();
+            String urlName = jTable.getValueAt(jTable.getSelectedRow(), 0).toString();//读取你获取行号的某一列的值（也就是字段）
+            try {
+                conn = dbUtil.getCon();
+                List<Url> urls = urlDao.findUrlByName(conn, urlName);
+                o_id = urls.get(0).getId();
+            } catch (Exception ee) {
+                ee.printStackTrace();
+            } finally {
+                try {
+                    conn.close();
+                } catch (SQLException ee) {
+                    ee.printStackTrace();
+                }
+            }
 //            System.out.println("Oid:" + o_id);
             setVisible(false);
         } else if (e.getSource() == no) {

@@ -7,12 +7,16 @@ import org.apache.commons.net.ftp.FTPReply;
 import java.io.*;
 import java.net.MalformedURLException;
 
+import static cn.itcast.view.ViewUtil.readFileByLines;
+
 /**
  * Created by Administrator on 2019-07-29.
  */
 public class FtpUtils {
+    //读取文件内容并返回
+    String ip = readFileByLines("D:\\IPConfig.txt");
     //ftp服务器地址
-    public String hostname = "192.168.1.3";
+    public String hostname = ip;
     //ftp服务器端口号默认为21
     public Integer port = 21 ;
     //ftp登录账号
@@ -26,6 +30,7 @@ public class FtpUtils {
      * 初始化ftp服务器
      */
     public void initFtpClient() {
+
         ftpClient = new FTPClient();
         ftpClient.setControlEncoding("utf-8");
         try {
