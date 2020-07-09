@@ -828,6 +828,9 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
             }
 
         } else if (e.getSource() == jb2) {
+
+
+
             //判断主图坐标是否为空
             if (path != null) {
                 StringBuffer sb = new StringBuffer();//地图热区
@@ -1044,6 +1047,10 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
                     try {
                         conn = dbUtil.getCon();
                         List<Url> urls = urlDao.findUrlByName(conn, urlName);
+                        if (urls.size()<=0){
+                            JOptionPane.showMessageDialog(null,"请先保存数据");
+                            return;
+                        }
                         String str = "<!DOCTYPE html>\n" +
                                 "<html>\n" +
                                 " <head>\n" +
