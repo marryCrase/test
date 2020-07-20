@@ -9,7 +9,7 @@ import static cn.itcast.view.ViewUtil.readFileByLines;
  * Created by Administrator on 2019-08-22.
  */
 public class DbUtil {
-    //¶ÁÈ¡ÎÄ¼şÄÚÈİ²¢·µ»Ø
+    //è¯»å–æ–‡ä»¶å†…å®¹å¹¶è¿”å›
     String ip = readFileByLines("D:\\IPConfig.txt");
 
     private String dbUrl = "jdbc:mysql://"+ip+"/plm2";
@@ -18,7 +18,7 @@ public class DbUtil {
     private String jdbcName = "com.mysql.jdbc.Driver";
 
     /**
-     * »ñÈ¡Êı¾İ¿âÁ¬½Ó
+     * è·å–æ•°æ®åº“è¿æ¥
      * @return
      * @throws Exception
      */
@@ -29,7 +29,7 @@ public class DbUtil {
     }
 
     /**
-     * ¹Ø±ÕÊı¾İ¿âÁ¬½Ó
+     * å…³é—­æ•°æ®åº“è¿æ¥
      * @param con
      * @throws Exception
      */
@@ -43,9 +43,9 @@ public class DbUtil {
         DbUtil dbUtil = new DbUtil();
         try {
             dbUtil.getCon();
-            System.out.println("Êı¾İ¿âÁ¬½Ó³É¹¦");
+            System.out.println("æ•°æ®åº“è¿æ¥æˆåŠŸ");
         } catch (Exception e) {
-            System.out.println("Êı¾İ¿âÁ¬½ÓÊ§°Ü");
+            System.out.println("æ•°æ®åº“è¿æ¥å¤±è´¥");
             e.printStackTrace();
         }
     }

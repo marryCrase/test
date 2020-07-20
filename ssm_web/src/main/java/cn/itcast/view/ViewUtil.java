@@ -75,6 +75,8 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
     private JButton jb9 = new JButton();//关闭
     private JButton jb10 = new JButton();//缩小放大
     private JButton jb11 = new JButton();//最小化
+    private JButton jb12 = new JButton(); //上传文件
+    private JButton jb13 = new JButton(); //二维码库
 
     private JLabel labelIP = new JLabel("服务器IP：" + serverIP, JLabel.CENTER);//IP地址
     private JLabel labelUrl = new JLabel("", JLabel.CENTER);//IP地址
@@ -186,6 +188,9 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
     private List<Data> listVideo = new ArrayList<>();//视频集合
     private List<Data> listPath = new ArrayList<>();//路径集合
 
+    private String QRname = ""; //二维码名称
+    private QrcodeDao qrcodeDao = new QrcodeDao();
+
     /**
      * main方法
      *
@@ -244,6 +249,8 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
         jb9.addActionListener(this);
         jb10.addActionListener(this);
         jb11.addActionListener(this);
+        jb12.addActionListener(this);
+        jb13.addActionListener(this);
 
         //设置按钮鼠标监听
         jb.addMouseListener(this);
@@ -257,6 +264,8 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
         jb9.addMouseListener(this);
         jb10.addMouseListener(this);
         jb11.addMouseListener(this);
+        jb12.addMouseListener(this);
+        jb13.addMouseListener(this);
 
         //设置控件边距
         Border emptyBorder = BorderFactory.createEmptyBorder(0, 0, 0, 0);
@@ -271,6 +280,8 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
         jb9.setBorder(emptyBorder);
         jb10.setBorder(emptyBorder);
         jb11.setBorder(emptyBorder);
+        jb12.setBorder(emptyBorder);
+        jb13.setBorder(emptyBorder);
 
         Border center = BorderFactory.createEmptyBorder(10, 10, 10, 10);
         myPanel.setBorder(center);
@@ -297,6 +308,8 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
         labelPx.setOpaque(false);
         panelBottom.setOpaque(false);
         rightTip.setOpaque(false);
+        jb12.setOpaque(false);
+        jb13.setOpaque(false);
 
         //设置按钮透明
         jb.setContentAreaFilled(false);
@@ -310,6 +323,8 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
         jb9.setContentAreaFilled(false);
         jb10.setContentAreaFilled(false);
         jb11.setContentAreaFilled(false);
+        jb12.setContentAreaFilled(false);
+        jb13.setContentAreaFilled(false);
 
         //去掉按钮文字周围的焦点框
         jb.setFocusPainted(false);
@@ -323,6 +338,8 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
         jb9.setFocusPainted(false);
         jb10.setFocusPainted(false);
         jb11.setFocusPainted(false);
+        jb12.setFocusPainted(false);
+        jb13.setFocusPainted(false);
 
         //设置布局
         framePanel.setLayout(null);
@@ -344,6 +361,8 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
         panelTop.add(jb2);
         panelTop.add(jb3);
         panelTop.add(jb4);
+        panelTop.add(jb12);
+        panelTop.add(jb13);
 
         /*panelTop.add(jb9);
         panelTop.add(jb10);
@@ -393,11 +412,15 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
         jb2.setIcon(bgImg("img/output.jpg"));
         jb3.setIcon(bgImg("img/save.jpg"));
         jb4.setIcon(bgImg("img/load.jpg"));
+        jb12.setIcon(bgImg("img/upload.png"));
+        jb13.setIcon(bgImg("img/qrcode.png"));
         //设置按钮位置大小
         jb.setBounds(jFrame.getWidth() / 15, (panelTop.getHeight() - background.getIconHeight()) / 2, background.getIconWidth(), background.getIconHeight());
         jb2.setBounds(jFrame.getWidth() / 15 + jFrame.getWidth() / 13, (panelTop.getHeight() - background.getIconHeight()) / 2, background.getIconWidth(), background.getIconHeight());
         jb3.setBounds(jFrame.getWidth() / 15 + jFrame.getWidth() / 13 * 2, (panelTop.getHeight() - background.getIconHeight()) / 2, background.getIconWidth(), background.getIconHeight());
         jb4.setBounds(jFrame.getWidth() / 15 + jFrame.getWidth() / 13 * 3, (panelTop.getHeight() - background.getIconHeight()) / 2, background.getIconWidth(), background.getIconHeight());
+        jb12.setBounds(jFrame.getWidth() / 15 + jFrame.getWidth() / 13 * 4, (panelTop.getHeight() - background.getIconHeight()) / 2, background.getIconWidth(), background.getIconHeight());
+        jb13.setBounds(jFrame.getWidth() / 15 + jFrame.getWidth() / 13 * 5, (panelTop.getHeight() - background.getIconHeight()) / 2, background.getIconWidth(), background.getIconHeight());
 
         //设置按钮背景
         jb5.setIcon(bgImg("img/hText.jpg"));
@@ -1140,6 +1163,18 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
                                 "</html>";
 
                         writeLocalStrTwo(str, "D:\\tupian.html");
+
+                        //输入二维码名称并保存
+                        QRname = JOptionPane.showInputDialog(this,"请输入二维码名称");
+                        if (QRname.isEmpty()){
+                            showMessageDialog(null,"二维码名称不能为空");
+                            return;
+                        }
+                        Qrcode qrcode = new Qrcode();
+                        qrcode.setName(QRname);
+                        qrcode.setUid(urls.get(0).getId());
+                        qrcodeDao.saveQrcode(conn,qrcode);
+
                     } catch (Exception ee) {
                         ee.printStackTrace();
                     } finally {
@@ -1149,6 +1184,7 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
                             ee.printStackTrace();
                         }
                     }
+
                     if (urlName != null) {
                         String Cpath = path.replace("/", "\\");
                         String p = Cpath.substring(Cpath.lastIndexOf("\\") + 1, Cpath.length());
@@ -1223,7 +1259,31 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
             save();
         } else if (e.getSource() == jb4) {
             load();
-        } else if (e.getSource() == jb9) {//关闭
+        }else if (e.getSource()== jb12){//上传文件
+            FileDialog fd = new FileDialog(jFrame, "文件", FileDialog.LOAD);
+            FilenameFilter ff = new FilenameFilter() {
+                public boolean accept(File dir, String name) {
+                    if (name.endsWith("jpg")) {
+                        return true;
+                    }
+                    return false;
+                }
+            };
+            fd.setFilenameFilter(ff);
+            fd.setLocationRelativeTo(null);
+            fd.setVisible(true);
+            //上传文件
+            boolean b = ftp.uploadFile("", fd.getFile(), fd.getDirectory()+fd.getFile());
+            if (b){
+                showMessageDialog(null,"上传成功");
+            }else{
+                showMessageDialog(null,"上传失败");
+            }
+        }else if (e.getSource() == jb13){//二维码窗口
+            new QrcodeView(jFrame,"二维码列表",true);
+//            QrcodeView qrcodeView =
+//            qrcodeView.setVisible(true);
+        }else if (e.getSource() == jb9) {//关闭
             jFrame.dispose();
         } else if (e.getSource() == jb10) {//放大缩小
 //            Toolkit.getDefaultToolkit().getScreenSize()  屏幕大小
@@ -1259,7 +1319,7 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
             lastOptions = 4;
             jb8.setIcon(bgImg("img/hVideo.jpg"));
         } else if (e.getSource() == Jdlog1Btn1) {//输入文本确定按钮
-            String inputValue = "http://" + Jdlog1Field.getText() + ".html";
+            String inputValue = "http://" + Jdlog1Field.getText();// + ".html"
             if (Jdlog1Field.getText().equals("") || Jdlog1Field.getText() == null) {
                 inputValue = "";
             }
@@ -1564,7 +1624,11 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
             jb3.setIcon(bgImg("img/hSave.jpg"));
         } else if (e.getSource() == jb4) {
             jb4.setIcon(bgImg("img/hLoad.jpg"));
-        } else if (e.getSource() == jb9) {
+        }else if (e.getSource() == jb12){
+            jb12.setIcon(bgImg("img/hupload.png"));
+        }else if (e.getSource() == jb13){
+            jb13.setIcon(bgImg("img/hqrcode.png"));
+        }else if (e.getSource() == jb9) {
             jb9.setIcon(bgImg("img/hClose.jpg"));
         } else if (e.getSource() == jb10) {
             jb10.setIcon(bgImg("img/hBig.jpg"));
@@ -1584,7 +1648,11 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
             jb3.setIcon(bgImg("img/save.jpg"));
         } else if (e.getSource() == jb4) {
             jb4.setIcon(bgImg("img/load.jpg"));
-        } else if (e.getSource() == jb9) {
+        }else if (e.getSource() == jb12){
+            jb12.setIcon(bgImg("img/upload.png"));
+        }else if (e.getSource() == jb13){
+            jb13.setIcon(bgImg("img/qrcode.png"));
+        }else if (e.getSource() == jb9) {
             jb9.setIcon(bgImg("img/close.jpg"));
         } else if (e.getSource() == jb10) {
             jb10.setIcon(bgImg("img/big.jpg"));
@@ -1949,6 +2017,7 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
         jsp.setOpaque(false);//将jsp根面板设置为透明
         jsp.getViewport().setOpaque(false);//将jsp的viewport设置为透明
     }
+
 
     public static void file(String fileName, String context) {
 
