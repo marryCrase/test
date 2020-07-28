@@ -666,6 +666,12 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
                                 data.setText("");
                                 data.setPath(fdopen.getDirectory().replace("\\", "/") + fdopen.getFile());
                                 listData.add(data);
+
+                                images = new ImageIcon(fdopen.getDirectory().replace("\\", "/") + fdopen.getFile());
+                                jLabels.add(new JLabel("", JLabel.CENTER));
+                                jLabels.get(jLabels.size() - 1).setIcon(images);
+                                jLabels.get(jLabels.size() - 1).setBounds(x, y, x1 - x, y1 - y);
+                                myPanel.add(jLabels.get(jLabels.size() - 1));
                                 break;
                             case 3:
 //                                uriList.add(null);
@@ -1332,7 +1338,6 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
             jLabels.add(new JLabel(s, JLabel.CENTER));
 //            jLabels.get(jLabels.size() - 1).setText(s);
             jLabels.get(jLabels.size() - 1).setBounds(x, y, x1 - x, y1 - y);
-
             myPanel.add(jLabels.get(jLabels.size() - 1));
 
 //            dataList.add("@TEXT:");
