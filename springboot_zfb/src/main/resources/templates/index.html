@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" th:href="@{/css/layui.css}">
+</head>
+<body>
+
+    <form action="/pay" method="post">
+        <br>
+        <br>
+        <h1>支付宝支付  网页APP版</h1>
+        <br>
+        <br>
+        <div class="layui-form-item">
+            <label class="layui-form-label">商品单号</label>
+            <div class="layui-input-block">
+                <input type="text" name="out_trade_no" required  lay-verify="required" placeholder="请输入标题" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">商品名称</label>
+            <div class="layui-input-block">
+                <input type="text" name="subject" required  lay-verify="required" placeholder="请输入标题" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">付款金额</label>
+            <div class="layui-input-block">
+                <input type="text" name="total_amount" required  lay-verify="required" placeholder="请输入标题" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label"> 商品描述（可空）</label>
+            <div class="layui-input-block">
+                <input type="text" name="tody" required  lay-verify="required" placeholder="请输入标题" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">支付超时时间（秒可空）</label>
+            <div class="layui-input-block">
+                <input type="text" name="timeout_express" required  lay-verify="required" placeholder="请输入标题" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">销售产品码</label>
+            <div class="layui-input-block">
+                <input type="text" name="product_code" required  lay-verify="required" placeholder="请输入标题" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button class="layui-btn" lay-submit lay-filter="formDemo">立即提交</button>
+                <!--<button type="reset" class="layui-btn layui-btn-primary">重置</button>-->
+            </div>
+        </div>
+    </form>
+
+</body>
+</html>
