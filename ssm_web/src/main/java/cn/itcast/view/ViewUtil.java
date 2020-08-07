@@ -397,7 +397,7 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
         panelRightList.setPreferredSize(new Dimension(jFrame.getWidth() / 7 + 23, panelRight.getHeight() - panelRight.getHeight() / 10));
         panelRightBom.setPreferredSize(new Dimension(jFrame.getWidth() / 7 + 23, panelRight.getHeight() / 10));
 
-        rightTip.setBounds(15, panelRight.getHeight() - panelRight.getHeight() / 10 * 3 - 50 + jLabel.getHeight(), jFrame.getWidth() / 7 + 10, panelRight.getHeight() / 5);
+        rightTip.setBounds(15, panelRight.getHeight() - panelRight.getHeight() / 10 * 2 + jLabel.getHeight(), jFrame.getWidth() / 7 + 10, panelRight.getHeight() / 5);
         myPanel.setBounds(9, 8, panelCenter.getWidth() - 18, panelCenter.getHeight() - 16);
         labelIP.setBorder(BorderFactory.createEmptyBorder(panelRight.getHeight() / 20, 10, 10, 10));
 
@@ -659,7 +659,7 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
                                 } else {
 //                                    uriList.add("http://"+inputValue2+".html");//所有链接
 //                                    photoUrl.add("http://"+inputValue2+".html");//图片链接
-                                    data.setUrl("http://" + inputValue2 + ".html");
+                                    data.setUrl("http://" + inputValue2);
                                 }
                                 data.setType("@PHOTO:");
                                 data.setCoord(banner);
@@ -668,6 +668,8 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
                                 listData.add(data);
 
                                 images = new ImageIcon(fdopen.getDirectory().replace("\\", "/") + fdopen.getFile());
+                                //缩放图片
+                                images.setImage(images.getImage().getScaledInstance(x1 - x, y1 - y, Image.SCALE_DEFAULT));
                                 jLabels.add(new JLabel("", JLabel.CENTER));
                                 jLabels.get(jLabels.size() - 1).setIcon(images);
                                 jLabels.get(jLabels.size() - 1).setBounds(x, y, x1 - x, y1 - y);
@@ -858,8 +860,6 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
 
         } else if (e.getSource() == jb2) {
 
-
-
             //判断主图坐标是否为空
             if (path != null) {
                 StringBuffer sb = new StringBuffer();//地图热区
@@ -867,6 +867,11 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
                 StringBuffer span = new StringBuffer();//文字span
                 StringBuffer classSpan = new StringBuffer();//span文字的js
                 StringBuffer visibleAbles = new StringBuffer();//文字的长按js
+
+                StringBuffer photos = new StringBuffer();//图片photos
+                StringBuffer classPhotos = new StringBuffer();//图片photo的CSS样式
+                StringBuffer photosJS = new StringBuffer();//图片photo的JS样式
+
                 StringBuffer videos = new StringBuffer();//视频video
                 StringBuffer classVideos = new StringBuffer();//视频video的CSS样式
                 StringBuffer videosJS = new StringBuffer();//视频video的JS样式
@@ -913,15 +918,15 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
                                 "\t           document.getElementById('span" + i + "').style.width=xx" + i + "-x" + i + "+\"px\";\n" +
                                 "\t           document.getElementById('span" + i + "').style.height=yy" + i + "-y" + i + "+\"px\";\n" +
                                 "\t           document.getElementById('11" + i + "').setAttribute(\"coords\",'\"'+x" + i + "+','+y" + i + "+','+xx" + i + "+','+yy" + i + "+'\"');\n" +
-                                "\t           document.getElementById('span" + i + "').style.overflow=\"hidden\";\n" +
-                                "document.getElementById(\"span"+i+"\").style.lineHeight=document.getElementById(\"span"+i+"\").offsetHeight+'px';\n";
+                                "\t           document.getElementById('span" + i + "').style.overflow=\"hidden\";\n";
+//                                "document.getElementById(\"span"+i+"\").style.lineHeight=document.getElementById(\"span"+i+"\").offsetHeight+'px';\n";
                         js.append(jspinjie);
 
                         String sClassSpan = "#span" + i + "{\n" +
                                 "\t\t\t\tmargin: auto;\n" +
                                 "\t\t\t\tposition: absolute;\n" +
                                 "\t\t\t\ttext-align: center;\n" +
-                                "\t\t\t\tline-height: 100px;\n" +
+//                                "\t\t\t\tline-height: 100px;\n" +
                                 "\t\t\t\ttop:auto;\n" +
                                 "\t\t\t\tleft: auto;\n" +
                                 "\t\t\t\twidth: auto;\n" +
@@ -1050,7 +1055,7 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
                         double picy1 = (double) y / images.getIconHeight();
                         double picx2 = (double) xx / images.getIconWidth();
                         double picy2 = (double) yy / images.getIconHeight();
-                        String audioclass = ".photo" + i + "{\n" +
+                        String photoclass = ".photo" + i + "{\n" +
                                 "\t\tmargin: auto;\n" +
                                 "\t    position: absolute;\n" +
                                 "\t    background-size: contain;\n" +
@@ -1058,11 +1063,11 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
                                 "\t    left: 0px;\n" +
                                 "\t    width: 0px;" +
                                 "    }";
-                        classAudios.append(audioclass);
+                        classPhotos.append(photoclass);
                         ftp.uploadFile("", listPhoto.get(i).getPath().substring(listPhoto.get(i).getPath().lastIndexOf("/") + 1, listPhoto.get(i).getPath().length()), listPhoto.get(i).getPath());
-                        String audio = "<a href=\"" + listPhoto.get(i).getUrl() + "\"><img id=\"photo" + i + "\" class=\"photo" + i + "\" src=\"./" + listPhoto.get(i).getPath().substring(listPhoto.get(i).getPath().lastIndexOf("/") + 1, listPhoto.get(i).getPath().length()) + "\" controls=\"controls\"></img></a>";
-                        audios.append(audio);
-                        String audioJs = "\t            var px" + i + " = parseInt(picw*" + picx1 + ");          //计算出坐标与总长度的商，当做参数\\n\" +\n" +
+                        String photo = "<a href=\"" + listPhoto.get(i).getUrl() + "\"><img id=\"photo" + i + "\" class=\"photo" + i + "\" src=\"./" + listPhoto.get(i).getPath().substring(listPhoto.get(i).getPath().lastIndexOf("/") + 1, listPhoto.get(i).getPath().length()) + "\" controls=\"controls\"></img></a>";
+                        photos.append(photo);
+                        String photoJs = "\t            var px" + i + " = parseInt(picw*" + picx1 + ");          //计算出坐标与总长度的商，当做参数\\n\" +\n" +
                                 "\t            var py" + i + " = parseInt(pich*" + picy1 + ");\n" +
                                 "\t            var pxx" + i + " = parseInt(picw*" + picx2 + ");\n" +
                                 "\t            var pyy" + i + " = parseInt(pich*" + picy2 + ");\n" +
@@ -1070,7 +1075,7 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
                                 "\t           document.getElementById('photo" + i + "').style.left=obj.left+px" + i + "+\"px\";\n" +
                                 "\t           document.getElementById('photo" + i + "').style.width=pxx" + i + "-px" + i + "+\"px\";\n" +
                                 "\t           document.getElementById('photo" + i + "').style.height=pyy" + i + "-py" + i + "+\"px\";\n";
-                        audiosJS.append(audioJs);
+                        photosJS.append(photoJs);
                     }
                     String imgpath = path.substring(path.lastIndexOf("/") + 1, path.length());
                     try {
@@ -1101,6 +1106,7 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
                                 "    height: auto;\n" +
                                 "   }\n" +
                                 classSpan + "\n" +
+                                classPhotos + "\n" +
                                 classVideos + "\n" +
                                 classAudios + "\n" +
                                 "  </style>\n" +
@@ -1110,18 +1116,24 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
                                 "   \t\t<img id=\"banner1\" ondblclick=\"displayDate()\" usemap=\"#banner\" class=\"imgh\" src=\"" + "./" + imgpath + "\" />\n" +
                                 videos + "\n" +
                                 audios + "\n" +
+                                photos + "\n" +
                                 span + "\n" +
                                 "   \t\t<map name=\"banner\">\n" +
                                 sb +
                                 "\t\t</map>\n" +
                                 "<script>\n" +
-                                "\t\t\t\n" +
+                                "\t\t\t\nwindow.onpageshow = function (event) {\n" +
+                                "\t\t\t  if (event.persisted) {\n" +
+                                "\t\t\t    window.location.reload();\n" +
+                                "\t\t\t  }\n" +
+                                "\t\t\t}" +
                                 "\t\t\tfunction displayDate(){\n" +
                                 "\t\t\t\tvar picw = document.getElementById(\"banner1\").width;\n" +
                                 "\t\t\t\tvar pich = document.getElementById(\"banner1\").height;\n" +
                                 "var box = document.getElementById('banner1');\n" +
                                 "var obj = getRect(box);\n" +
                                 js + "\n" +
+                                photosJS + "\n" +
                                 videosJS + "\n" +
                                 audiosJS + "\n" +
                                 "\t\t\t}\n" +
@@ -1210,7 +1222,7 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
                             Jdlog2.setLayout(null);
                             JLabel jLabel = new JLabel("输入原名字为替换,输入新名字为创建");
 
-                            JLabel jLabel1 = new JLabel("主图名称:");
+                            JLabel jLabel1 = new JLabel("网页名称:");
                             JLabel jLabel2 = new JLabel("网页注释:");
 
                             jLabel.setBounds(150, 30, 300, 30);
