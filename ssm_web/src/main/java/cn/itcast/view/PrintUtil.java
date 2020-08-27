@@ -2,13 +2,7 @@ package cn.itcast.view;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.awt.print.PrinterJob;
 import java.io.*;
-
-import javax.imageio.ImageIO;
 import javax.print.Doc;
 import javax.print.DocFlavor;
 import javax.print.DocPrintJob;
@@ -21,7 +15,6 @@ import javax.print.attribute.HashDocAttributeSet;
 import javax.print.attribute.HashPrintRequestAttributeSet;
 import javax.print.attribute.PrintRequestAttributeSet;
 import javax.print.attribute.standard.*;
-import javax.swing.*;
 
 public class PrintUtil {
     private static final Logger logger = LoggerFactory.getLogger(PrintUtil.class);

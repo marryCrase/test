@@ -10,6 +10,8 @@ public class Url {
     private int o_id;  //父图的ID
     private String ihtml;//主网页名称
     private String annotation;//网页注释
+    private String name;//名称
+    private String level;//层级
 
     public int getId() {
         return id;
@@ -59,6 +61,22 @@ public class Url {
         this.annotation = annotation;
     }
 
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getLevel() {
+        return level;
+    }
+
+    public void setLevel(String level) {
+        this.level = level;
+    }
+
     @Override
     public String toString() {
         return "Url{" +
@@ -68,6 +86,8 @@ public class Url {
                 ", o_id=" + o_id +
                 ", ihtml='" + ihtml + '\'' +
                 ", annotation='" + annotation + '\'' +
+                ", name='" + name + '\'' +
+                ", level='" + level + '\'' +
                 '}';
     }
 }

@@ -83,5 +83,13 @@ public class QrcodeDao {
         psmt.setInt(2,qrcode.getUid());
         return psmt.executeUpdate();
     }
-
+    /**
+     * 根据UID删除数据
+     */
+    public int delQRcode(Connection con, int uid)throws Exception{
+        String sql = "delete from p_qrcode where uid = ?";
+        PreparedStatement psmt = con.prepareStatement(sql);
+        psmt.setInt(1,uid);
+        return psmt.executeUpdate();
+    }
 }

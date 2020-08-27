@@ -2,7 +2,7 @@ package cn.itcast.view;
 
 import cn.itcast.dao.*;
 import cn.itcast.domain.*;
-import cn.itcast.test.readProperties;
+import cn.itcast.util.readProperties;
 import cn.itcast.util.DbUtil;
 import cn.itcast.util.FtpUtils;
 import cn.itcast.util.QRCodeUtil;
@@ -12,6 +12,8 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
@@ -77,6 +79,7 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
     private JButton jb11 = new JButton();//最小化
     private JButton jb12 = new JButton(); //上传文件
     private JButton jb13 = new JButton(); //二维码库
+    private JButton jb14 = new JButton(); //删除
 
     private JLabel labelIP = new JLabel("服务器IP：" + serverIP, JLabel.CENTER);//IP地址
     private JLabel labelUrl = new JLabel("", JLabel.CENTER);//IP地址
@@ -85,6 +88,8 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
     /**
      * scrollpane
      */
+    private List<String> nameList = new ArrayList<>();//项目名称层级
+    private JButton back = new JButton("返回");
     private JLabel jLabel = new JLabel("项目名称", JLabel.CENTER);
     private String data[][] = new String[][]{};
     private String column[] = new String[]{""};
@@ -110,27 +115,16 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
     private List<JLabel> jLabels = new ArrayList<JLabel>();//文字label框集合
 
     private List<String> list = new ArrayList();//鼠标点下并拖动后的所有坐标
-    /*private List dataList = new ArrayList();//数据类型集合
-    private List uriList = new ArrayList<>();//链接类型集合
-    //文字
-    private List<String> listSpan = new ArrayList<>();//文字集合
-    private List videoList = new ArrayList<>();//视频集合
-    private List audioList = new ArrayList<>();//音频集合
-    private List photoList = new ArrayList<>();//图片集合
 
-    private List textListUri = new ArrayList();//文本坐标集合
-    private List photoListUri = new ArrayList();//图片坐标集合
-    private List audioListUri = new ArrayList();//音频坐标集合
-    private List videoListUri = new ArrayList();//视频坐标集合
-
-    private List textUrl = new ArrayList();//文本链接集合
-    private List photoUrl = new ArrayList();//图片链接集合*/
+    private List<Integer> levelId = new ArrayList();//层级id记录
 
     private ImageIcon images;//输入图片
     private String path = null;//输入图片路径
     private String urlName = null;//主图名称
     private String pageName = null;//主网页名称
     private String annotation = null;//网页注释
+    private String name = "";//网页标题名
+    private String level = "";//所属层级
     //输出弹框
     private FileDialog fdopen;
     //传输文件到远程服务器FTP
@@ -190,6 +184,7 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
 
     private String QRname = ""; //二维码名称
     private QrcodeDao qrcodeDao = new QrcodeDao();
+
 
     /**
      * main方法
@@ -251,6 +246,8 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
         jb11.addActionListener(this);
         jb12.addActionListener(this);
         jb13.addActionListener(this);
+        jb14.addActionListener(this);
+        back.addActionListener(this);
 
         //设置按钮鼠标监听
         jb.addMouseListener(this);
@@ -266,6 +263,8 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
         jb11.addMouseListener(this);
         jb12.addMouseListener(this);
         jb13.addMouseListener(this);
+        jb14.addMouseListener(this);
+        back.addMouseListener(this);
 
         //设置控件边距
         Border emptyBorder = BorderFactory.createEmptyBorder(0, 0, 0, 0);
@@ -282,6 +281,8 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
         jb11.setBorder(emptyBorder);
         jb12.setBorder(emptyBorder);
         jb13.setBorder(emptyBorder);
+        jb14.setBorder(emptyBorder);
+        back.setBorder(emptyBorder);
 
         Border center = BorderFactory.createEmptyBorder(10, 10, 10, 10);
         myPanel.setBorder(center);
@@ -310,6 +311,8 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
         rightTip.setOpaque(false);
         jb12.setOpaque(false);
         jb13.setOpaque(false);
+        jb14.setOpaque(false);
+        back.setOpaque(false);
 
         //设置按钮透明
         jb.setContentAreaFilled(false);
@@ -325,6 +328,8 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
         jb11.setContentAreaFilled(false);
         jb12.setContentAreaFilled(false);
         jb13.setContentAreaFilled(false);
+        jb14.setContentAreaFilled(false);
+        back.setContentAreaFilled(false);
 
         //去掉按钮文字周围的焦点框
         jb.setFocusPainted(false);
@@ -340,6 +345,8 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
         jb11.setFocusPainted(false);
         jb12.setFocusPainted(false);
         jb13.setFocusPainted(false);
+        jb14.setFocusPainted(false);
+        back.setFocusPainted(false);
 
         //设置布局
         framePanel.setLayout(null);
@@ -363,6 +370,7 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
         panelTop.add(jb4);
         panelTop.add(jb12);
         panelTop.add(jb13);
+        panelTop.add(jb14);
 
         /*panelTop.add(jb9);
         panelTop.add(jb10);
@@ -379,6 +387,7 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
         panelBottom.add(labelUrl);
         panelBottom.add(labelPx);
 
+        panelRightList.add(back);
         panelRightList.add(rightTip);
         panelRightBom.add(labelIP);
 
@@ -396,8 +405,8 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
         panelBottom.setBounds(0, jFrame.getHeight() - jFrame.getHeight() / 15, jFrame.getWidth(), jFrame.getHeight() / 15);
         panelRightList.setPreferredSize(new Dimension(jFrame.getWidth() / 7 + 23, panelRight.getHeight() - panelRight.getHeight() / 10));
         panelRightBom.setPreferredSize(new Dimension(jFrame.getWidth() / 7 + 23, panelRight.getHeight() / 10));
-
-        rightTip.setBounds(15, panelRight.getHeight() - panelRight.getHeight() / 10 * 2 + jLabel.getHeight(), jFrame.getWidth() / 7 + 10, panelRight.getHeight() / 5);
+        back.setBounds(15, panelRight.getHeight() - panelRight.getHeight() / 10 * 2 + jLabel.getHeight()-panelRight.getHeight() / 10, jFrame.getWidth() / 7 + 10, panelRight.getHeight() / 10);
+        rightTip.setBounds(15, panelRight.getHeight() - panelRight.getHeight() / 10 * 2 + jLabel.getHeight(), jFrame.getWidth() / 7 + 10, panelRight.getHeight() / 5-panelRight.getHeight() / 10);
         myPanel.setBounds(9, 8, panelCenter.getWidth() - 18, panelCenter.getHeight() - 16);
         labelIP.setBorder(BorderFactory.createEmptyBorder(panelRight.getHeight() / 20, 10, 10, 10));
 
@@ -414,13 +423,16 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
         jb4.setIcon(bgImg("img/load.jpg"));
         jb12.setIcon(bgImg("img/upload.png"));
         jb13.setIcon(bgImg("img/qrcode.png"));
+        jb14.setIcon(bgImg("img/shanchu.png"));
+
         //设置按钮位置大小
         jb.setBounds(jFrame.getWidth() / 15, (panelTop.getHeight() - background.getIconHeight()) / 2, background.getIconWidth(), background.getIconHeight());
         jb2.setBounds(jFrame.getWidth() / 15 + jFrame.getWidth() / 13, (panelTop.getHeight() - background.getIconHeight()) / 2, background.getIconWidth(), background.getIconHeight());
         jb3.setBounds(jFrame.getWidth() / 15 + jFrame.getWidth() / 13 * 2, (panelTop.getHeight() - background.getIconHeight()) / 2, background.getIconWidth(), background.getIconHeight());
         jb4.setBounds(jFrame.getWidth() / 15 + jFrame.getWidth() / 13 * 3, (panelTop.getHeight() - background.getIconHeight()) / 2, background.getIconWidth(), background.getIconHeight());
-        jb12.setBounds(jFrame.getWidth() / 15 + jFrame.getWidth() / 13 * 4, (panelTop.getHeight() - background.getIconHeight()) / 2, background.getIconWidth(), background.getIconHeight());
-        jb13.setBounds(jFrame.getWidth() / 15 + jFrame.getWidth() / 13 * 5, (panelTop.getHeight() - background.getIconHeight()) / 2, background.getIconWidth(), background.getIconHeight());
+        jb14.setBounds(jFrame.getWidth() / 15 + jFrame.getWidth() / 13 * 4, (panelTop.getHeight() - background.getIconHeight()) / 2, background.getIconWidth(), background.getIconHeight());
+        jb12.setBounds(jFrame.getWidth() / 15 + jFrame.getWidth() / 13 * 5, (panelTop.getHeight() - background.getIconHeight()) / 2, background.getIconWidth(), background.getIconHeight());
+        jb13.setBounds(jFrame.getWidth() / 15 + jFrame.getWidth() / 13 * 6, (panelTop.getHeight() - background.getIconHeight()) / 2, background.getIconWidth(), background.getIconHeight());
 
         //设置按钮背景
         jb5.setIcon(bgImg("img/hText.jpg"));
@@ -439,7 +451,6 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
         jb11.setIcon(bgImg("img/smole.jpg"));
 
         //设置按钮位置大小
-
         jb9.setBounds(jFrame.getWidth() - background.getIconWidth(), 0, background.getIconWidth(), background.getIconHeight());
         jb10.setBounds(jFrame.getWidth() - background.getIconWidth() * 2 - 10, 0, background.getIconWidth(), background.getIconHeight());
         jb11.setBounds(jFrame.getWidth() - background.getIconWidth() * 3 - 20, 0, background.getIconWidth(), background.getIconHeight());
@@ -455,6 +466,51 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
         jLabel.setBounds(0, 0, panelRight.getWidth(), 40);
         reJsp();
 //        ac = new ClassPathXmlApplicationContext("applicationContext.xml");
+
+        table.getSelectionModel().addListSelectionListener(new ListSelectionListener(){
+
+            @Override
+            public void valueChanged(ListSelectionEvent e)
+            {
+                int row = table.getSelectedRow();
+                if(row != -1)
+                {
+                    String valueAt = (String) model.getValueAt(row, 0);
+                    List<String> names = new ArrayList<>();
+                    try {
+                        conn = dbUtil.getCon();
+                        String newValueAt = deleteCharString(valueAt,'▷');
+                        List<Url> urls = urlDao.findUrlByName(conn, newValueAt);
+                        List<Url> urls1 = urlDao.seachQrcodeByOid(conn,urls.get(0).getId());
+                        if (urls1.size()<=0){
+                            return;
+                        }else {
+                            levelId.add(urls.get(0).getId());
+                            for (Url url : urls1){
+                                List<Url> urls2 = urlDao.seachQrcodeByOid(conn,url.getId());
+                                if (urls2.size()>0){
+                                    names.add("▷"+url.getIphoto());
+                                }else {
+                                    names.add(url.getIphoto());
+                                }
+                            }
+                            nameList.add(newValueAt);
+                            jLabel.setText(nameList.toString().replaceAll(",","/").replaceAll("\\[","").replaceAll("\\]",""));
+                        }
+                    } catch (Exception ee) {
+                        ee.printStackTrace();
+                    } finally {
+                        try {
+                            conn.close();
+                        } catch (SQLException ee) {
+                            ee.printStackTrace();
+                        }
+                    }
+                    fillTable(names);
+                }
+            }
+        });
+
 
         table.addMouseListener(new MouseAdapter() {
             @Override
@@ -483,7 +539,8 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
                 if (tip != null) {
                     try {
                         conn = dbUtil.getCon();
-                        List<Url> urls = urlDao.findUrlByName(conn, tip.toString());
+                        String newTip = deleteCharString(tip.toString(),'▷');
+                        List<Url> urls = urlDao.findUrlByName(conn, newTip);
                         table.setToolTipText(urls.get(0).getAnnotation());
                         rightTip.setText(urls.get(0).getAnnotation());
                     } catch (Exception ee) {
@@ -564,7 +621,6 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
         /**
          * dialog END   ---------
          */
-
         // 设置窗口为无标题（无菜单栏）
 //        jFrame.setUndecorated(true);
 //        com.sun.awt.AWTUtilities.setWindowOpaque(jFrame, false);// 设置窗体透明
@@ -578,7 +634,6 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
          * 测试
          */
 //        myPanel.setBorder(BorderFactory.createLineBorder(Color.magenta,1));
-
         /**
          * myPanel所有监听事件
          */
@@ -776,6 +831,7 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
         });
     }
 
+
     /**
      * 设置背景图片
      */
@@ -823,16 +879,6 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
                 urlName = null;
                 path = null;
                 list.clear();
-                /*uriList.clear();
-                dataList.clear();
-                textListUri.clear();
-                listSpan.clear();
-                photoListUri.clear();
-                photoList.clear();
-                audioListUri.clear();
-                audioList.clear();
-                videoListUri.clear();
-                videoList.clear();*/
                 listData.clear();
                 listText.clear();
                 listPhoto.clear();
@@ -854,12 +900,13 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
                 myPanel.rePaint(0, 0, 0, 0, list);
                 String s = fd.getDirectory() + fd.getFile();//返回路径名
                 path = s.replace("\\", "/");
+                name = showInputDialog(jFrame,"请输入标题名");
+                labelPx.setText("当前项目："+name);
             } else {
                 showMessageDialog(null, "没输入内容");
             }
 
         } else if (e.getSource() == jb2) {
-
             //判断主图坐标是否为空
             if (path != null) {
                 StringBuffer sb = new StringBuffer();//地图热区
@@ -1112,7 +1159,10 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
                                 "  </style>\n" +
                                 " </head>\n" +
                                 "  <body onLoad=\"displayDate()\">\n" +
-                                "<a href=\"http://" + serverIP + ":8001/fb?id=" + urls.get(0).getId() + "\">给点建议</a>" +
+                                "<div>\n" +
+                                "<span>☝ 请勿触碰    </span>\n"+
+                                "<a style=\"text-decoration:none;\" href=\"http://" + serverIP + ":8001/fb?id=" + urls.get(0).getId() + "\">给点建议</a>" +
+                                "</div>\n" +
                                 "   \t\t<img id=\"banner1\" ondblclick=\"displayDate()\" usemap=\"#banner\" class=\"imgh\" src=\"" + "./" + imgpath + "\" />\n" +
                                 videos + "\n" +
                                 audios + "\n" +
@@ -1126,7 +1176,7 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
                                 "\t\t\t  if (event.persisted) {\n" +
                                 "\t\t\t    window.location.reload();\n" +
                                 "\t\t\t  }\n" +
-                                "\t\t\t}" +
+                                "\t\t\t}\n" +
                                 "\t\t\tfunction displayDate(){\n" +
                                 "\t\t\t\tvar picw = document.getElementById(\"banner1\").width;\n" +
                                 "\t\t\t\tvar pich = document.getElementById(\"banner1\").height;\n" +
@@ -1220,7 +1270,7 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
                         if (pageName == null || urlName == null) {
                             Jdlog2 = new JDialog(jFrame, "请输入");
                             Jdlog2.setLayout(null);
-                            JLabel jLabel = new JLabel("输入原名字为替换,输入新名字为创建");
+                            JLabel jLabel = new JLabel("请输入网页名称");
 
                             JLabel jLabel1 = new JLabel("网页名称:");
                             JLabel jLabel2 = new JLabel("网页注释:");
@@ -1261,7 +1311,6 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
                                     }
                                 }
                             }
-
                             Jdlog2.setResizable(false);
                             Jdlog2.setLocationRelativeTo(this);
                             Jdlog2.setVisible(true);
@@ -1290,6 +1339,9 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
             fd.setFilenameFilter(ff);
             fd.setLocationRelativeTo(null);
             fd.setVisible(true);
+            if (fd.getDirectory()==null||fd.getFile()==null){
+                return;
+            }
             //上传文件
             boolean b = ftp.uploadFile("", fd.getFile(), fd.getDirectory()+fd.getFile());
             if (b){
@@ -1301,7 +1353,9 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
             new QrcodeView(jFrame,"二维码列表",true);
 //            QrcodeView qrcodeView =
 //            qrcodeView.setVisible(true);
-        }else if (e.getSource() == jb9) {//关闭
+        }else if(e.getSource() == jb14){ //删除
+            new DeleteView(ViewUtil.this,"删除",true);
+        } else if (e.getSource() == jb9) {//关闭
             jFrame.dispose();
         } else if (e.getSource() == jb10) {//放大缩小
 //            Toolkit.getDefaultToolkit().getScreenSize()  屏幕大小
@@ -1417,7 +1471,6 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
             urlName = Jdlog2Field1.getText();
             pageName = urlName;
             annotation = Jdlog2Field2.getText();//获取注释
-
             try {
                 conn = dbUtil.getCon();
                 List<Url> allUrl = urlDao.findAllUrl(conn);
@@ -1427,18 +1480,50 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
                         return;
                     }
                 }
+                if (!isLetterDigit(urlName)){
+                    showMessageDialog(Jdlog2,"名称只能为字母或数字");
+                    return;
+                }
                 Url url = new Url();
                 url.setIphoto(urlName);
                 url.setIphotoUrl(path);
                 url.setO_id(o_id);
                 url.setIhtml(pageName + ".html");
                 url.setAnnotation(annotation);
+                url.setName(name);
+                url.setLevel(level);
                 urlDao.saveUrl(conn, url);
                 List<Url> urls = urlDao.findUrlByName(conn, urlName);
                 //保存信息
                 for (Data data : listData) {
                     data.setUid(urls.get(0).getId());
                     dataDao.saveData(conn, data);
+                }
+            } catch (Exception ee) {
+                ee.printStackTrace();
+            } finally {
+                try {
+                    conn.close();
+                } catch (SQLException ee) {
+                    ee.printStackTrace();
+                }
+            }
+            JOptionPane.showMessageDialog(null, "保存成功");
+            /*Vector rowData = new Vector();
+            rowData.add(urlName);
+            model.insertRow(model.getRowCount(), rowData);*/
+            List<String> names = new ArrayList<>();
+            try {
+                conn = dbUtil.getCon();
+                List<Url> urls = urlDao.seachQrcodeByOid(conn,0);
+
+                for (Url url : urls){
+                    List<Url> urls2 = urlDao.seachQrcodeByOid(conn,url.getId());
+                    if (urls2.size()>0){
+                        names.add("▷"+url.getIphoto());
+                    }else {
+                        names.add(url.getIphoto());
+                    }
                 }
 
             } catch (Exception ee) {
@@ -1450,10 +1535,8 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
                     ee.printStackTrace();
                 }
             }
-            JOptionPane.showMessageDialog(null, "保存成功");
-            Vector rowData = new Vector();
-            rowData.add(urlName);
-            model.insertRow(model.getRowCount(), rowData);
+            fillTable(names);
+
             Jdlog2.dispose();
         } else if (e.getSource() == Jdlog2btn2) {//保存弹出框重置按钮
             Jdlog2Field1.setText("");
@@ -1464,16 +1547,6 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
             urlName = null;
             path = null;
             list.clear();
-            /*uriList.clear();
-            dataList.clear();
-            textListUri.clear();
-            listSpan.clear();
-            photoListUri.clear();
-            photoList.clear();
-            audioListUri.clear();
-            audioList.clear();
-            videoListUri.clear();
-            videoList.clear();*/
             listData.clear();
             listText.clear();
             listPhoto.clear();
@@ -1495,14 +1568,13 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
             myPanel.rePaint(0, 0, 0, 0, list);
 
             urlName = jTable.getValueAt(jTable.getSelectedRow(), 0).toString();//获取选择框的第一列数据
-            /*UrlServiceImpl urlService = (UrlServiceImpl) ac.getBean("urlService");
-            List<Url> urls = urlService.findUrlByName(urlName);
-            path = urls.get(0).getIphotoUrl();//获取选择框的路径
-            loadDialog.dispose();*/
+
 
             try {
                 conn = dbUtil.getCon();
                 List<Url> urls = urlDao.findUrlByName(conn, urlName);
+                name = urls.get(0).getName();
+                labelPx.setText("当前项目："+name);
                 if (urls.size() > 1) {
                     showMessageDialog(null, "数据重复,取第一条");
                 }
@@ -1512,43 +1584,6 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
                 for (Data data : datas) {
                     listData.add(data);
                 }
-                /*List<Route> routes = routeDao.findRouteByUid(conn, urls.get(0).getId());
-                for (Route route : routes) {
-                    dataList.add(route.getType());
-                    if (route.getType().equals("@TEXT:")) {
-                        textUrl.add(route.getUrl());
-                    } else if (route.getType().equals("@PHOTO:")) {
-                        photoUrl.add(route.getUrl());
-                    }
-                    uriList.add(route.getUrl());
-                    list.add(route.getRoute());
-                }
-
-                List<Text> texts = textDao.findTextByUid(conn, urls.get(0).getId());
-                for (Text text : texts) {
-//                textUrl.add(text.getTextUrl());
-                    textListUri.add(text.getTextListUrl());
-                    listSpan.add(text.getText());
-                }
-
-                List<Photo> photos = photoDao.findPhotoByUid(conn, urls.get(0).getId());
-                for (Photo photo : photos) {
-//                photoUrl.add(photo.getPhotoUrl());
-                    photoListUri.add(photo.getPhotoListUrl());
-                    photoList.add(photo.getPhoto());
-                }
-
-                List<Audio> audios = audioDao.findAudioByUid(conn, urls.get(0).getId());
-                for (Audio audio : audios) {
-                    audioListUri.add(audio.getAudioUrl());
-                    audioList.add(audio.getAudio());
-                }
-
-                List<Video> videos = videoDao.findVideoByUid(conn, urls.get(0).getId());
-                for (Video video : videos) {
-                    videoListUri.add(video.getVideoUrl());
-                    videoList.add(video.getVideo());
-                }*/
             } catch (Exception ee) {
                 ee.printStackTrace();
             } finally {
@@ -1558,26 +1593,6 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
                     ee.printStackTrace();
                 }
             }
-            /*for (int i = 0; i < dataList.size(); i++) {
-                System.out.println("加载坐标:" + list.size());
-                String zuobiao = list.get(i);
-                int x = Integer.parseInt(zuobiao.substring(0, zuobiao.indexOf(",")));
-                int y = Integer.parseInt(zuobiao.substring(zuobiao.indexOf(",") + 1, zuobiao.indexOf(":")));
-                int xx = Integer.parseInt(zuobiao.substring(zuobiao.indexOf(":") + 1, zuobiao.lastIndexOf(",")));
-                int yy = Integer.parseInt(zuobiao.substring(zuobiao.lastIndexOf(",") + 1, zuobiao.length()));
-
-                if (!dataList.get(i).equals("@TEXT:")) {
-                    if (dataList.size()>i){
-                        jLabels.add(new JLabel(String.valueOf(dataList.get(i)), JLabel.CENTER));
-                    }
-                } else {
-                    if (listSpan.size()>i){
-                        jLabels.add(new JLabel(String.valueOf(listSpan.get(i)), JLabel.CENTER));
-                    }
-                }
-                jLabels.get(jLabels.size() - 1).setBounds(x, y, xx - x, yy - y);
-                myPanel.add(jLabels.get(jLabels.size() - 1));
-            }*/
             for (Data data : listData) {
                 String zuobiao = data.getCoord();
                 int x = Integer.parseInt(zuobiao.substring(0, zuobiao.indexOf(",")));
@@ -1597,6 +1612,49 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
             loadDialog.dispose();
         } else if (e.getSource() == btn2) {//加载弹出框取消按钮
             loadDialog.dispose();
+        }else if (e.getSource()==back){//右侧列表返回
+            if (levelId.size()>0){
+                for (int s : levelId){
+                    System.out.println("减之前"+s);
+                }
+                levelId.remove(levelId.size()-1);
+            }
+            List<String> names = new ArrayList<>();
+            try {
+                conn = dbUtil.getCon();
+                List<Url> urls = new ArrayList<>();
+                if (nameList.size()>0){
+                    nameList.remove(nameList.size()-1);
+                }
+                if(levelId.size()>0){
+                    for (int s : levelId){
+                        System.out.println("减过之后"+s+"size-1"+(levelId.size()-1));
+                    }
+                    urls = urlDao.seachQrcodeByOid(conn, levelId.get(levelId.size()-1));
+                    jLabel.setText(nameList.toString().replaceAll(",","/").replaceAll("\\[","").replaceAll("\\]",""));
+                }else {
+                    urls = urlDao.seachQrcodeByOid(conn,0);
+                    jLabel.setText("项目名称");
+                }
+                for (Url url : urls){
+                    List<Url> urls2 = urlDao.seachQrcodeByOid(conn,url.getId());
+                    if (urls2.size()>0){
+                        names.add("▷"+url.getIphoto());
+                    }else {
+                        names.add(url.getIphoto());
+                    }
+                }
+            } catch (Exception ee) {
+                ee.printStackTrace();
+            } finally {
+                try {
+                    conn.close();
+                } catch (SQLException ee) {
+                    ee.printStackTrace();
+                }
+            }
+            fillTable(names);
+
         }
 
         //展示图片
@@ -1645,6 +1703,8 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
             jb12.setIcon(bgImg("img/hupload.png"));
         }else if (e.getSource() == jb13){
             jb13.setIcon(bgImg("img/hqrcode.png"));
+        }else if (e.getSource() == jb14){
+            jb14.setIcon(bgImg("img/hshanchu.png"));
         }else if (e.getSource() == jb9) {
             jb9.setIcon(bgImg("img/hClose.jpg"));
         } else if (e.getSource() == jb10) {
@@ -1669,7 +1729,9 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
             jb12.setIcon(bgImg("img/upload.png"));
         }else if (e.getSource() == jb13){
             jb13.setIcon(bgImg("img/qrcode.png"));
-        }else if (e.getSource() == jb9) {
+        }else if (e.getSource() == jb14){
+        jb14.setIcon(bgImg("img/shanchu.png"));
+        }else if(e.getSource() == jb9) {
             jb9.setIcon(bgImg("img/close.jpg"));
         } else if (e.getSource() == jb10) {
             jb10.setIcon(bgImg("img/big.jpg"));
@@ -1705,7 +1767,37 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
                 break;
         }
     }
+    public String deleteCharString(String sourceString, char chElemData) {
+        String deleteString = "";
+        for (int i = 0; i < sourceString.length(); i++) {
+            if (sourceString.charAt(i) != chElemData) {
+                deleteString += sourceString.charAt(i);
+            }
+        }
+        return deleteString;
+    }
+    //更新列表数据
+    public void fillTable(List<String> members) {
+        DefaultTableModel tableModel = (DefaultTableModel) table.getModel();
+        tableModel.setRowCount(0);// 清除原有行
 
+// 填充数据
+        for (String s : members) {
+            String[] arr = new String[1];
+            arr[0] = s;
+
+// 添加数据到表格
+            tableModel.addRow(arr);
+        }
+
+// 更新表格
+        table.invalidate();
+    }
+
+    public static boolean isLetterDigit(String str) {
+        String regex = "^[a-z0-9A-Z]+$";
+        return str.matches(regex);
+    }
     //保存生成的html文件到本地
     public void writeLocalStrTwo(String str, String path) {
         try {
@@ -1810,6 +1902,24 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
             myDialog.setVisible(true);
             if (myDialog.getMessage() == 1) {
                 o_id = myDialog.getO_id();
+                try {
+                    conn = dbUtil.getCon();
+                    List<Url> urls = urlDao.findUrlByName(conn, myDialog.getIphoto());
+                    if (urls.get(0).getLevel()==null){
+                        level = myDialog.getIphoto()+"/";
+                    }else {
+                        level = urls.get(0).getLevel()+ myDialog.getIphoto()+"/";
+                    }
+
+                } catch (Exception ee) {
+                    ee.printStackTrace();
+                } finally {
+                    try {
+                        conn.close();
+                    } catch (SQLException ee) {
+                        ee.printStackTrace();
+                    }
+                }
             }
             Jdlog2 = new JDialog(jFrame, "请输入");
             Jdlog2.setLayout(null);
@@ -1886,16 +1996,6 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
                 urlName = null;
                 path = null;
                 list.clear();
-                /*uriList.clear();
-                dataList.clear();
-                textListUri.clear();
-                listSpan.clear();
-                photoListUri.clear();
-                photoList.clear();
-                audioListUri.clear();
-                audioList.clear();
-                videoListUri.clear();
-                videoList.clear();*/
                 listData.clear();
                 listText.clear();
                 listPhoto.clear();
@@ -1930,11 +2030,11 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
             photo = new String[urls.size()][2];
             for (int i = 0; i < urls.size(); i++) {
                 photo[i][0] = urls.get(i).getIphoto();
-                if (urls.get(i).getO_id() != 0) {
-                    List<Url> urlLs = urlDao.findUrlById(conn, urls.get(i).getO_id());
-                    photo[i][1] = urlLs.get(0).getIphoto();
-                } else {
+                String s = urls.get(i).getLevel();
+                if (s==null) {
                     photo[i][1] = "无";
+                } else {
+                    photo[i][1] = s;
                 }
             }
         } catch (Exception ee) {
@@ -1970,10 +2070,15 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
         //右侧显示列表
         try {
             conn = dbUtil.getCon();
-            List<Url> urls = urlDao.findAllUrl(conn);
+            List<Url> urls = urlDao.seachQrcodeByOid(conn,0);
             data = new String[urls.size()][1];
             for (int i = 0; i < urls.size(); i++) {
-                data[i][0] = urls.get(i).getIphoto();
+                List<Url> urls2 = urlDao.seachQrcodeByOid(conn,urls.get(i).getId());
+                if (urls2.size()>0){
+                    data[i][0] = "▷"+urls.get(i).getIphoto();
+                }else {
+                    data[i][0] = urls.get(i).getIphoto();
+                }
             }
         } catch (Exception ee) {
             ee.printStackTrace();
@@ -1985,8 +2090,11 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
             }
         }
 
-
-        model = new DefaultTableModel(data, column);
+        model = new DefaultTableModel(data, column){
+            public boolean isCellEditable(int rowIndex, int ColIndex){
+                return false;
+            }
+        };
         table = new JTable(model);
         table.updateUI();//刷新table
         jsp.setViewportView(table);//刷新jsp
@@ -2016,7 +2124,7 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
 
         jsp.setOpaque(false);
         renderer.setOpaque(false);//render单元格的属性
-        table.setEnabled(false);//不可点击
+//        table.setEnabled(false);//不可点击
 
         //遍历表格中所有列，将其渲染器设置为renderer
         for (int i = 0; i < column.length; i++) {
@@ -2033,6 +2141,7 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
         table.setOpaque(false);//将table设置为透明
         jsp.setOpaque(false);//将jsp根面板设置为透明
         jsp.getViewport().setOpaque(false);//将jsp的viewport设置为透明
+
     }
 
 
@@ -2197,7 +2306,7 @@ class MyDialog extends JDialog implements ActionListener {
     UrlDao urlDao = new UrlDao();
     Url url = new Url();*/
 
-    Object[] cum = {"名称", "所属"};
+    Object[] cum = {"名称", "归属于"};
     String[][] photo;
     JTable jTable;
     JScrollPane jScrollPane;
@@ -2205,6 +2314,7 @@ class MyDialog extends JDialog implements ActionListener {
     ApplicationContext ac;
     //返回值
     int o_id;
+    String iphoto="";
 
     private Connection conn = null;
     private DbUtil dbUtil = new DbUtil();
@@ -2238,11 +2348,11 @@ class MyDialog extends JDialog implements ActionListener {
             photo = new String[urlList.size()][2];
             for (int i = 0; i < urlList.size(); i++) {
                 photo[i][0] = urlList.get(i).getIphoto();
-                if (urlList.get(i).getO_id() != 0) {
-                    List<Url> urls = urlDao.findUrlById(conn, urlList.get(i).getO_id());
-                    photo[i][1] = urls.get(0).getIphoto();
-                } else {
+                String s = urlList.get(i).getLevel();
+                if (s==null) {
                     photo[i][1] = "无";
+                } else {
+                    photo[i][1] = s;
                 }
             }
         } catch (Exception ee) {
@@ -2270,6 +2380,7 @@ class MyDialog extends JDialog implements ActionListener {
                 conn = dbUtil.getCon();
                 List<Url> urls = urlDao.findUrlByName(conn, urlName);
                 o_id = urls.get(0).getId();
+                iphoto = urls.get(0).getIphoto();
             } catch (Exception ee) {
                 ee.printStackTrace();
             } finally {
@@ -2294,6 +2405,9 @@ class MyDialog extends JDialog implements ActionListener {
 
     public int getO_id() {
         return o_id;
+    }
+    public String getIphoto(){
+        return iphoto;
     }
 
 }

@@ -195,11 +195,12 @@ public class QrcodeView extends JDialog implements ActionListener {
                     savePic(jf);
                     jf.dispose();
                     //打印
-//                    new PrintUtil().drawImage("saveScreen.jpg", 1);
+                    new PrintUtil().drawImage("saveScreen.jpg", 1);
                     System.out.println("打印二维码："+name+".jpg");
                     deleteFile("saveScreen.jpg");//删除本地原二维码文件
                 }
             }
+            showMessageDialog(null,"打印成功");
 
         } else if (e.getSource() == btn2) {//打印全部
             List<String> names = new ArrayList<>();
@@ -239,12 +240,12 @@ public class QrcodeView extends JDialog implements ActionListener {
                     savePic(jf);
                     jf.dispose();
                     //打印
-//                    new PrintUtil().drawImage("saveScreen.jpg", 1);
+                    new PrintUtil().drawImage("saveScreen.jpg", 1);
                     System.out.println("打印二维码："+name+".jpg");
                     deleteFile("saveScreen.jpg");//删除本地原二维码文件
                 }
             }
-
+            showMessageDialog(null,"打印成功");
         } else if (e.getSource() == btn3) {//搜索
             List<String> names = new ArrayList<>();
 
@@ -361,7 +362,7 @@ public class QrcodeView extends JDialog implements ActionListener {
                     jf.dispose();
                 }
             }
-
+            showMessageDialog(null,"导出成功");
 
 
         }else if (e.getSource() == btn5){//导出所有图片
@@ -436,6 +437,7 @@ public class QrcodeView extends JDialog implements ActionListener {
                     jf.dispose();
                 }
             }
+            showMessageDialog(null,"导出成功");
         }
     }
 
@@ -481,7 +483,11 @@ public class QrcodeView extends JDialog implements ActionListener {
         }
 
 
-        model = new DefaultTableModel(data, column);
+        model = new DefaultTableModel(data, column){
+            public boolean isCellEditable(int rowIndex, int ColIndex){
+                return false;
+            }
+        };
         table = new JTable(model);
         table.updateUI();//刷新table
         jsp.setViewportView(table);//刷新jsp

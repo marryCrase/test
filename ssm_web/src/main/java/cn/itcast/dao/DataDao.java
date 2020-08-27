@@ -54,5 +54,14 @@ public class DataDao {
         psmt.setInt(6,data.getUid());
         return psmt.executeUpdate();
     }
+    /**
+     * 根据UID删除数据
+     */
+    public int delData(Connection con, int uid)throws Exception{
+        String sql = "delete from p_data where uid = ?";
+        PreparedStatement psmt = con.prepareStatement(sql);
+        psmt.setInt(1,uid);
+        return psmt.executeUpdate();
+    }
 
 }
