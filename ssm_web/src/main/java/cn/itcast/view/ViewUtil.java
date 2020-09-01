@@ -10,6 +10,7 @@ import org.springframework.context.ApplicationContext;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.border.BevelBorder;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.ListSelectionEvent;
@@ -84,6 +85,8 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
     private JLabel labelIP = new JLabel("服务器IP：" + serverIP, JLabel.CENTER);//IP地址
     private JLabel labelUrl = new JLabel("", JLabel.CENTER);//IP地址
     private JLabel labelPx = new JLabel("",JLabel.CENTER);//提示使用图片大小
+    private JLabel LabelName = new JLabel("佩拉蒙",JLabel.CENTER);//logo名字
+    private JLabel plm = new JLabel("佩拉蒙             ",JLabel.RIGHT);//plm
 
     /**
      * scrollpane
@@ -199,6 +202,7 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
      * 构造方法
      */
     public ViewUtil() {
+
         //读取文件内容并返回
         String ip = readFileByLines("D:\\IPConfig.txt");
         //获取路径
@@ -313,6 +317,8 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
         jb13.setOpaque(false);
         jb14.setOpaque(false);
         back.setOpaque(false);
+        LabelName.setOpaque(false);
+        plm.setOpaque(false);
 
         //设置按钮透明
         jb.setContentAreaFilled(false);
@@ -371,6 +377,7 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
         panelTop.add(jb12);
         panelTop.add(jb13);
         panelTop.add(jb14);
+        panelTop.add(LabelName);
 
         /*panelTop.add(jb9);
         panelTop.add(jb10);
@@ -384,12 +391,17 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
         panelRight.add(panelRightList, BorderLayout.NORTH);
         panelRight.add(panelRightBom, BorderLayout.SOUTH);
 
+        panelBottom.setLayout(null);
         panelBottom.add(labelUrl);
         panelBottom.add(labelPx);
+        panelBottom.add(plm);
+
 
         panelRightList.add(back);
         panelRightList.add(rightTip);
         panelRightBom.add(labelIP);
+
+
 
         rightTip.setLineWrap(true);//设置文本域自动换行
         rightTip.setEnabled(false);
@@ -413,6 +425,11 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
         labelPx.setText("请使用小于" + myPanel.getWidth() + "×" + myPanel.getHeight() + "的图片");
         labelPx.setForeground(Color.gray);
 
+//        panelBottom.setBounds();
+        labelPx.setBounds(0,0,jFrame.getWidth(),panelBottom.getHeight()/2);
+        labelUrl.setBounds(0,0,jFrame.getWidth(),panelBottom.getHeight()/2);
+        plm.setBounds(0,0,jFrame.getWidth(),panelBottom.getHeight()/2);
+//        plm.setBorder(BorderFactory.createLineBorder(Color.red,1));
         /*Border bor = BorderFactory.createLineBorder(Color.ORANGE,1);
         rightTip.setBorder(bor);*/
 
@@ -432,8 +449,11 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
         jb4.setBounds(jFrame.getWidth() / 15 + jFrame.getWidth() / 13 * 3, (panelTop.getHeight() - background.getIconHeight()) / 2, background.getIconWidth(), background.getIconHeight());
         jb14.setBounds(jFrame.getWidth() / 15 + jFrame.getWidth() / 13 * 4, (panelTop.getHeight() - background.getIconHeight()) / 2, background.getIconWidth(), background.getIconHeight());
         jb12.setBounds(jFrame.getWidth() / 15 + jFrame.getWidth() / 13 * 5, (panelTop.getHeight() - background.getIconHeight()) / 2, background.getIconWidth(), background.getIconHeight());
-        jb13.setBounds(jFrame.getWidth() / 15 + jFrame.getWidth() / 13 * 6, (panelTop.getHeight() - background.getIconHeight()) / 2, background.getIconWidth(), background.getIconHeight());
-
+        jb13.setBounds(jFrame.getWidth() / 15 + jFrame.getWidth() / 13 * 6, (panelTop.getHeight() - background.getIconHeight()) / 2, background.getIconWidth()+10, background.getIconHeight());
+        LabelName.setFont(new Font("宋体",Font.LAYOUT_LEFT_TO_RIGHT,26));
+        LabelName.setForeground(Color.white);
+//        LabelName.setBorder(BorderFactory.createLineBorder(Color.red,1));
+        LabelName.setBounds(jFrame.getWidth() / 15 + jFrame.getWidth() / 13 * 8, (panelTop.getHeight() - background.getIconHeight())/2, jFrame.getWidth()-jFrame.getWidth() / 15-jFrame.getWidth() / 13 * 8,background.getIconHeight());
         //设置按钮背景
         jb5.setIcon(bgImg("img/hText.jpg"));
         jb6.setIcon(bgImg("img/photo.jpg"));
@@ -621,10 +641,9 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
         /**
          * dialog END   ---------
          */
-        // 设置窗口为无标题（无菜单栏）
-//        jFrame.setUndecorated(true);
-//        com.sun.awt.AWTUtilities.setWindowOpaque(jFrame, false);// 设置窗体透明
-        //com.sun.awt.AWTUtilities.setWindowOpacity(frame, 0.3f);//或者也可以自定义设置整个窗体的透明度(上一行代码等价于第二个参数设置为0f的情况)
+        Image image = Toolkit.getDefaultToolkit().getImage(ViewUtil.class.getClassLoader().getResource("img/PLM-logo.png"));
+        jFrame.setIconImage(image);
+        jFrame.setTitle("导览制作系统");
         jFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         jFrame.setResizable(true);
         jFrame.setVisible(true);
@@ -872,7 +891,6 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
             fd.setFilenameFilter(ff);
             fd.setLocationRelativeTo(null);
             fd.setVisible(true);
-            System.out.println(fd.getDirectory() + fd.getFile());
             //如果路径是空的，则不写入文本框
             if (!fd.getDirectory().equals("") || !fd.getFile().equals("")) {
                 pageName = null;
@@ -901,6 +919,9 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
                 String s = fd.getDirectory() + fd.getFile();//返回路径名
                 path = s.replace("\\", "/");
                 name = showInputDialog(jFrame,"请输入标题名");
+                if (name.equals("")||name==null){
+                    name = "未命名";
+                }
                 labelPx.setText("当前项目："+name);
             } else {
                 showMessageDialog(null, "没输入内容");
@@ -1614,9 +1635,6 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
             loadDialog.dispose();
         }else if (e.getSource()==back){//右侧列表返回
             if (levelId.size()>0){
-                for (int s : levelId){
-                    System.out.println("减之前"+s);
-                }
                 levelId.remove(levelId.size()-1);
             }
             List<String> names = new ArrayList<>();
@@ -1627,9 +1645,6 @@ public class ViewUtil extends JFrame implements ActionListener, MouseListener, M
                     nameList.remove(nameList.size()-1);
                 }
                 if(levelId.size()>0){
-                    for (int s : levelId){
-                        System.out.println("减过之后"+s+"size-1"+(levelId.size()-1));
-                    }
                     urls = urlDao.seachQrcodeByOid(conn, levelId.get(levelId.size()-1));
                     jLabel.setText(nameList.toString().replaceAll(",","/").replaceAll("\\[","").replaceAll("\\]",""));
                 }else {
